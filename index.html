@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Jerusalem Kosher Finder – Eidah, Rubin, Agudah, Landau, Efrati</title>
+<title>Kosher Finder</title>
+<style>
 <style>
 :root{
   box-sizing:border-box;
@@ -12,6 +13,7 @@
   --bg:#ffffff; --ink:#17201c; --muted:#5e6862; --line:#e6e1d6; --soft:#f4f1ea;
   --green:#1e5a3e; --gold:#a97e1e;
   --eidah:#1e5a3e; --rubin:#1f4e8c; --agudah:#5b3a8a; --landau:#8a3a2a; --efrati:#0f6e6e; --ou:#8a5a12; --machpud:#7a3f6a; --ok:#2e6b2e; --stark:#9a2f55; --tzfas:#5a6a1a; --sheiris:#555b58;
+  --kofk:#7a5418; --crc:#3d5a80; --chk:#8a2e3e; --kaj:#2f5d50; --vaad:#4d4d8a; --chas:#6a4c93; --nj:#356859; --crclist:#5f6b66;
   --meat:#b23a3a; --dairy:#2b6cb0; --pareve:#5f8a3a;
   --warn:#b7791f; --warnbg:#fdf3dc;
   --radius:6px;
@@ -21,6 +23,7 @@
     --bg:#131715; --ink:#eae6dc; --muted:#a8b0aa; --line:#2b332e; --soft:#1b211d;
     --green:#7fc79f; --gold:#d9b25a;
     --eidah:#7fc79f; --rubin:#8fb3ea; --agudah:#b79ce0; --landau:#e0937f; --efrati:#6fc7c7; --ou:#e2b25a; --machpud:#d59cc6; --ok:#9fd49f; --stark:#e79ab6; --tzfas:#c6d67e; --sheiris:#b8bfbb;
+    --kofk:#d9a868; --crc:#9fbbe0; --chk:#e39aa8; --kaj:#8fcfb9; --vaad:#a9a9e6; --chas:#c3a6e8; --nj:#8fc9b4; --crclist:#b3bcb7;
     --meat:#e28a8a; --dairy:#8fb3ea; --pareve:#a5cf7a;
     --warn:#e2b14b; --warnbg:#2a2415;
   }
@@ -29,6 +32,7 @@
   --bg:#131715; --ink:#eae6dc; --muted:#a8b0aa; --line:#2b332e; --soft:#1b211d;
   --green:#7fc79f; --gold:#d9b25a;
   --eidah:#7fc79f; --rubin:#8fb3ea; --agudah:#b79ce0; --landau:#e0937f; --efrati:#6fc7c7; --ou:#e2b25a; --machpud:#d59cc6; --ok:#9fd49f; --stark:#e79ab6; --tzfas:#c6d67e; --sheiris:#b8bfbb;
+    --kofk:#d9a868; --crc:#9fbbe0; --chk:#e39aa8; --kaj:#8fcfb9; --vaad:#a9a9e6; --chas:#c3a6e8; --nj:#8fc9b4; --crclist:#b3bcb7;
   --meat:#e28a8a; --dairy:#8fb3ea; --pareve:#a5cf7a;
   --warn:#e2b14b; --warnbg:#2a2415;
 }
@@ -110,13 +114,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 select.chip{appearance:none;-webkit-appearance:none;background:var(--bg);padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 6%27%3E%3Cpath d=%27M0 0l5 6 5-6z%27 fill=%27%23888%27/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:8px}
 .walk{font-weight:700;color:var(--green);white-space:nowrap}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:var(--k)}
+.bar h1 .citysel{font:inherit;font-family:Georgia,"Times New Roman",serif;font-size:22px;font-weight:700;color:inherit;background:transparent;border:0;border-bottom:2px dotted var(--gold);border-radius:0;padding:0 18px 0 0;margin:0;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 10 6%27%3E%3Cpath d=%27M0 0l5 6 5-6z%27 fill=%27%23a97e1e%27/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 2px center;background-size:10px}
+.bar h1 .citysel option{font-size:16px;color:#17201c;background:#fff}
+.stamp small{font-weight:400}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="bar">
-    <h1>Jerusalem kosher finder <small>Verified Eidah, Rav Rubin, Agudah, Landau, Efrati and OU places · calendar-aware</small></h1>
+    <h1><select class="citysel" id="city" aria-label="City"></select> kosher finder <small id="citySub"></small></h1>
     <div class="search" id="searchWrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Search name, food, street, neighborhood…" autocomplete="off" aria-label="Search restaurants">
@@ -144,38 +151,104 @@ select.chip{appearance:none;-webkit-appearance:none;background:var(--bg);padding
     <div class="chips" id="pesachChips" role="group" aria-label="Pesach filters" hidden></div>
     <div class="status" id="status"></div>
     <div id="results"></div>
-    <div class="legend"><span><i style="--k:var(--meat)"></i>Meat</span><span><i style="--k:var(--dairy)"></i>Dairy</span><span><i style="--k:var(--pareve)"></i>Pareve</span><span>⚠ = conflicting reports, check teudah</span></div>
+    <div class="legend"><span><i style="--k:var(--meat)"></i>Meat</span><span><i style="--k:var(--dairy)"></i>Dairy</span><span><i style="--k:var(--pareve)"></i>Pareve</span><span>⚠ = conflicting reports, check <span id="legendCert">teudah</span></span></div>
   </section>
 
   <section id="unconfirmed" hidden>
-    <div class="status">Reported with an accepted hechsher by only one source (mostly the DansDeals wiki, edited 15 Sept 2026). Not independently confirmed — check the teudah on site.</div>
+    <div class="status" id="unconfNote"></div>
     <div class="plain" id="unconfList"></div>
   </section>
 
   <section id="excluded" hidden>
-    <div class="status">Popular places that were checked and left out, with the reason.</div>
+    <div class="status" id="exclNote"></div>
     <div class="plain" id="exclList"></div>
   </section>
 </div>
 
 <script>
-const H = {
-  eidah:{label:"Eidah HaChareidis",c:"var(--eidah)"},
-  rubin:{label:"Rav Rubin",c:"var(--rubin)"},
-  agudah:{label:"Agudas Yisrael",c:"var(--agudah)"},
-  landau:{label:"Rav Landau",c:"var(--landau)"},
-  efrati:{label:"Rav Efrati",c:"var(--efrati)"},
-  ou:{label:"OU Mehadrin",g:"OU Mehadrin",c:"var(--ou)"},
-  machpud:{label:"Yoreh De'ah (Rav Machpud)",c:"var(--machpud)"},
-  ok:{label:"OK Mehadrin",g:"OK Mehadrin",c:"var(--ok)"},
-  stark:{label:"Star-K",g:"Star-K",c:"var(--stark)"},
-  tzfas:{label:"Tzfas",c:"var(--tzfas)"},
-  sheiris:{label:"Sheiris Yisrael",c:"var(--sheiris)"}
+// ---- rulesets: who counts as an accepted hechsher, and calendar/currency rules. Every city points to one.
+// Pure literal (no functions): tools/kf_data.js evals it to check rows.
+const RULES = {
+  israel:{
+    diaspora:false, cur:"₪", cert:"teudah",
+    unconfTab:"Single-source",
+    H:{
+      eidah:{label:"Eidah HaChareidis",c:"var(--eidah)"},
+      rubin:{label:"Rav Rubin",c:"var(--rubin)"},
+      agudah:{label:"Agudas Yisrael",c:"var(--agudah)"},
+      landau:{label:"Rav Landau",c:"var(--landau)"},
+      efrati:{label:"Rav Efrati",c:"var(--efrati)"},
+      ou:{label:"OU Mehadrin",g:"OU Mehadrin",c:"var(--ou)"},
+      machpud:{label:"Yoreh De'ah (Rav Machpud)",c:"var(--machpud)"},
+      ok:{label:"OK Mehadrin",g:"OK Mehadrin",c:"var(--ok)"},
+      stark:{label:"Star-K",g:"Star-K",c:"var(--stark)"},
+      tzfas:{label:"Tzfas",c:"var(--tzfas)"},
+      sheiris:{label:"Sheiris Yisrael",c:"var(--sheiris)"}
+    }
+  },
+  // USA: accepted = the agency is on the cRc "Acceptable Kashrus Agencies" list (data/crc/crc_acceptable_*.json).
+  usa:{
+    diaspora:true, cur:"$", cert:"certificate",
+    unconfTab:"Questionable",
+    H:{
+      ou:{label:"OU",g:"OU (Orthodox Union)",c:"var(--ou)"},
+      ok:{label:"OK",g:"OK Kosher",c:"var(--ok)"},
+      kofk:{label:"Kof-K",g:"Kof-K",c:"var(--kofk)"},
+      stark:{label:"Star-K",g:"Star-K / Star-D",c:"var(--stark)"},
+      crc:{label:"cRc",g:"cRc (Chicago Rabbinical Council)",c:"var(--crc)"},
+      chk:{label:"CHK",g:"Crown Heights Vaad (CHK)",c:"var(--chk)"},
+      kaj:{label:"KAJ",g:"KAJ (Khal Adath Jeshurun)",c:"var(--kaj)"},
+      kehilah:{label:"Kehilah",g:"Kehilah Kashrus",c:"var(--vaad)"},
+      flatbush:{label:"Vaad of Flatbush",g:"Vaad Harabanim of Flatbush",c:"var(--vaad)"},
+      queens:{label:"Queens Vaad",g:"Vaad Harabonim of Queens",c:"var(--vaad)"},
+      fivetowns:{label:"Five Towns Vaad",g:"Vaad of Five Towns & Far Rockaway",c:"var(--vaad)"},
+      weissmandl:{label:"Rabbi Weissmandl",g:"Rabbi M. M. Weissmandl",c:"var(--chas)"},
+      hisachdus:{label:"Hisachdus",g:"Beth Din Hameyuchud (Hisachdus)",c:"var(--chas)"},
+      belz:{label:"Belz",g:"Vaad Hakashrus Belz",c:"var(--chas)"},
+      nirbater:{label:"Nirbater Rav",g:"Nirbater Rav (Rabbi A. Teitelbaum)",c:"var(--chas)"},
+      volover:{label:"Volover Rav",g:"Volover Rav (Rabbi N. E. Teitelbaum)",c:"var(--chas)"},
+      tartikov:{label:"Tartikover Rav",g:"Tartikover Rav (Rabbi Y. Babad)",c:"var(--chas)"},
+      debrecen:{label:"Debrecener Rav",g:"Debrecener Rav (Rabbi S. Z. Stern)",c:"var(--chas)"},
+      mishmeres:{label:"Mishmeres",g:"Vaad Hakashrus Mishmeres L'Mishmeres",c:"var(--chas)"},
+      horowitz:{label:"Rabbi N. N. Horowitz",g:"Rabbi Nussen Naftali Horowitz",c:"var(--chas)"},
+      hivnov:{label:"Hivnover Rav",g:"Rav Kahal D'Hivnov (Rabbi Friedlander)",c:"var(--chas)"},
+      tarnopol:{label:"Tarnopol",g:"Tarnopol Kashrus",c:"var(--chas)"},
+      minchas:{label:"Minchas Chinuch",g:"Beth Din Minchas Chinuch",c:"var(--chas)"},
+      newsquare:{label:"New Square",g:"New Square Beth Din",c:"var(--chas)"},
+      wagshal:{label:"Rabbi Wagshal",g:"Rabbi C. M. Wagshal",c:"var(--chas)"},
+      mechon:{label:"Mechon L'Hoyroa",g:"Mechon L'Hoyroa",c:"var(--chas)"},
+      rcbc:{label:"RCBC",g:"RCBC (Bergen County)",c:"var(--nj)"},
+      lakewood:{label:"Lakewood Council",g:"Kashrus Council of Lakewood",c:"var(--nj)"},
+      metrowest:{label:"MetroWest Vaad",g:"Vaad Harabonim of MetroWest",c:"var(--nj)"},
+      passaic:{label:"Passaic-Clifton",g:"Passaic-Clifton Kashrus",c:"var(--nj)"},
+      jsor:{label:"JSOR",g:"Jersey Shore Orthodox Rabbinate",c:"var(--nj)"},
+      crclist:{label:"Other cRc-listed agency",g:"Other cRc-listed agencies",c:"var(--crclist)"}
+    }
+  }
 };
-const K = {meat:"Meat",dairy:"Dairy",pareve:"Pareve"};
-const M = q => "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+", Jerusalem");
+// ---- cities. To add one: an entry here + DATA.<id>.R/UNCONF/EXCL below (research workflow: args.city).
+const CITIES = {
+  jerusalem:{
+    name:"Jerusalem", rules:"israel", shushan:true, maps:"Jerusalem", center:[31.78,35.22], bbox:[31.70,35.14,31.88,35.28],
+    title:"Jerusalem kosher finder", sub:"Verified Eidah, Rav Rubin, Agudah, Landau, Efrati and OU places · calendar-aware",
+    store:"jkf", plusEx:"QC7Q+X8 Jerusalem", coordEx:"31.7895, 35.2150",
+    unconfNote:"Reported with an accepted hechsher by only one source (mostly the DansDeals wiki, edited 15 Sept 2026). Not independently confirmed — check the teudah on site.",
+    exclNote:"Popular places that were checked and left out, with the reason.",
+    LAND:[["Kotel / Old City",31.7767,35.2345],["Central Bus Station",31.7891,35.2030],["Mir Yeshiva / Beit Yisrael",31.7885,35.2244],["Geula (Malchei Yisrael)",31.7895,35.2150],["Machane Yehuda",31.7850,35.2120],["Ben Yehuda / Zion Square",31.7813,35.2192],["Mamilla",31.7776,35.2255],["Rav Shefa mall / Romema",31.7947,35.2084],["Sanhedria",31.7995,35.2185],["Ramat Eshkol (Paran)",31.8008,35.2277],["Har Hotzvim",31.8007,35.2102],["French Hill",31.8024,35.2385],["Pisgat Ze'ev",31.8207,35.2399],["Ramot Mall",31.8175,35.1944],["Givat Shaul / Kiryat Moshe",31.7879,35.1874],["Har Nof",31.7860,35.1738],["Bayit Vegan",31.7662,35.1842],["Rehavia",31.7750,35.2167],["Emek Refaim / German Colony",31.7648,35.2192],["Talpiot",31.7541,35.2174]]
+  },
+  manhattan:{
+    name:"New York – Manhattan", rules:"usa", shushan:false, maps:"Manhattan, New York, NY", center:[40.758,-73.985], bbox:[40.68,-74.03,40.88,-73.90],
+    title:"Manhattan kosher finder", sub:"Verified places under cRc-accepted hechsherim · calendar-aware",
+    store:"kf_manhattan", plusEx:"Q257+6Q New York", coordEx:"40.7580, -73.9855",
+    unconfNote:"Questionable: likely kosher but not confirmed — either the hechsher is not on the cRc list of acceptable agencies, or only one source names an accepted one. Check the certificate on site and ask your rav.",
+    exclNote:"Popular places that were checked and left out (no reliable certification, or a hechsher not on the cRc list), with the reason.",
+    LAND:[["Times Square",40.7580,-73.9855],["Grand Central",40.7527,-73.9772],["Penn Station / Madison Sq Garden",40.7506,-73.9935],["Empire State Building",40.7484,-73.9857],["Diamond District (W 47th St)",40.7572,-73.9808],["Rockefeller Center",40.7587,-73.9787],["Midtown East (Lexington & 51st)",40.7570,-73.9718],["Javits Center",40.7577,-74.0024],["Hudson Yards",40.7538,-74.0022],["Columbus Circle",40.7681,-73.9819],["Lincoln Center",40.7725,-73.9835],["Upper West Side (72nd & Broadway)",40.7781,-73.9819],["Upper West Side (86th & Broadway)",40.7887,-73.9767],["Upper East Side (86th & Lexington)",40.7795,-73.9555],["Metropolitan Museum",40.7794,-73.9632],["Mount Sinai Hospital",40.7900,-73.9526],["NYU Langone (1st Ave & 33rd)",40.7421,-73.9739],["Flatiron / Madison Square",40.7411,-73.9897],["Chelsea Market",40.7424,-74.0061],["Union Square",40.7359,-73.9906],["Washington Square / NYU",40.7308,-73.9973],["SoHo",40.7243,-73.9977],["Lower East Side (Essex & Delancey)",40.7186,-73.9880],["World Trade Center / Oculus",40.7115,-74.0110],["Wall Street",40.7060,-74.0088],["Columbia University",40.8075,-73.9626],["Harlem (125th St)",40.8094,-73.9480],["Yeshiva University / Washington Heights",40.8505,-73.9295]]
+  }
+};
+const DATA = {jerusalem:{}, manhattan:{}};
 
-const R = [
+// ================= DATA (one block per city; the research workflow rewrites these via tools/kf_data.js) =================
+DATA.jerusalem.R = [
 // EIDAH
 {n:"Entrecote",heb:"אנטרקוט",h:"eidah",k:"meat",t:"Upscale steakhouse",area:"Har Hotzvim",addr:"Kiryat HaMada 22",lat:31.8041759,lng:35.2060979,phone:"073-702-7317",price:4,nut:"High-protein",order:"Grilled chicken breast or steak with salad",rev:"Google 4.3 (3,134) · TA 3.7 (129). Strong steaks and service, pricey",hours:"Sun–Thu 12:30–23:00; closed Fri/Shabbat",proof:"https://metaylimbkipa.com/%D7%9E%D7%A1%D7%A2%D7%93%D7%95%D7%AA-%D7%9B%D7%A9%D7%A8%D7%95%D7%AA-%D7%9C%D7%9E%D7%94%D7%93%D7%A8%D7%99%D7%9F-%D7%91%D7%99%D7%A8%D7%95%D7%A9%D7%9C%D7%99%D7%9D/",plabel:"Metaylim BeKipa (Feb 2026); eLuna"},
 {n:"Caballero",heb:"קבלרו",h:"eidah",k:"meat",t:"Chef steakhouse",area:"Har Hotzvim",addr:"HaMarpe 1",lat:31.8010328,lng:35.21167,phone:"02-537-7000",price:4,nut:"High-protein",order:"Lamb chops or sliced-meat platter with salads",rev:"TA 4.0 (4). Elegant room, creative dishes",hours:"Sun–Thu 18:00–23:00; Motzei Shabbat 20:00–00:00",proof:"https://rest.jdn.co.il/hechsher/בד״ץ-העדה״ח-ירושלים/",plabel:"JDN Eidah filter (Sep 2026)",warn:"JDN lists it under Badatz Eidah; Metaylim BeKipa (Feb 2026) says Badatz Kehilot; own site only says 'mehadrin'. Check the teudah before going."},
@@ -345,7 +418,7 @@ const R = [
 {n:"Shalom Falafel (Jaffa St 218)",heb:"פלאפל שלום יפו 218",h:"sheiris",k:"meat",t:"Falafel & meat grill",area:"Central Bus Station area",addr:"Jaffa St 218",lat:31.788897,lng:35.204652,phone:"054-4346566",hours:"Sun–Thu 10:00–22:00; Fri closed (Wolt)",proof:"https://wolt.com/he/isr/jerusalem/restaurant/shalom-falafel-yafo-st",plabel:"Wolt header (Sep 2026)",warn:"Wolt writes 'Badatz Shearim Yisrael', which appears to be a misspelling of Sheiris Yisrael. The Shalom Falafel at Jaffa 224 is Rabbanut."},
 ];
 
-const UNCONF = [
+DATA.jerusalem.UNCONF = [
  ["Motza'le (Yechiel M. Steinberg 1)","The venue is a café at the Motza entrance (Yechiel M. Steinberg 1), not Romema, and Motza may be outside Jerusalem municipality. Arutz 7 (Sep 2024) gives only 'כשרות בד\"צ למהדרין' and names no beis din. The only Eidah attribution is easy.co.il's filter, which returned 403 and could not be checked."],
  ["Nishnush (Chana 11)","No source I could reach names Eidah. easy.co.il's own page title says 'כשר רבנות מקומית'. The Eidah claim rests only on the easy.co.il filter list, which returned 403."],
  ["Pizza Domino (HaHagana 21)","The row's proof, the OU Kosher blog of 14 Jan 2026, lists Domino at HaHagana 21 as an OU Kosher restaurant, with no mehadrin or Eidah wording. Its own site, Facebook and d.co.il name no hechsher, and rest.co.il says only 'Kosher LeMehadrin'. The Eidah attribution rests only on the easy.co.il filter (403). If the teudah is plain OU it belongs in EXCL."],
@@ -433,7 +506,8 @@ const UNCONF = [
  ["Roost (Paran, Ramat Eshkol)","The DansDeals wiki (Feb 2025) lists it as Rubin meat 'replaces Shmaltz', but R currently verifies Shmaltz at Paran 7 and JDN has no listing. It is probably defunct, and the only source is a forum."],
  ["Rodriguez Express (Kiryat HaMada 3)","Only kosherest.co.il lists it (archived 2025/26 page): 'בדץ הרב מחפוד'. The listing is undated, its open status is unknown, and the main Rodriguez row is Rubin with a known Machpud conflict."],
 ];
-const EXCL = [
+
+DATA.jerusalem.EXCL = [
  ["1868","Rabbanut Jerusalem Mehadrin"],
  ["Eser (Ticho House)","Rabbanut Jerusalem Mehadrin"],
  ["Veranda (David Citadel)","Rabbanut Mehadrin; only the meat is Rubin/Landau"],
@@ -489,15 +563,309 @@ const EXCL = [
  ["Hatch, Bobby Burger, Aharon's, Touro, HaMasila, La Story, Nahman, Fiori, Mimoni's, Bein HaKashot, Cardo Cafe, Rova Coffee House, Cafe Lion, Biga, Landwer, Bagel Cafe, Yehuda Bakery, Helen Family Bakers, Napoleon","Badatz Kehilot and/or Rabbanut Yerushalayim (Metaylim Feb 2026)"],
 ];
 
+DATA.manhattan.R = [
+{h:"ou",proof:"https://oukosher.org/restaurants/eshel/",plabel:"OU directory (2026-10)",n:"Eshel",k:"meat",t:"Restaurant (meat)",area:"Upper West Side",addr:"507 Columbus Ave (83rd–84th St)",lat:40.78539,lng:-73.972724,phone:"(212) 299-4759"},
+{h:"ou",proof:"https://oukosher.org/restaurants/reserve-cut-park/",plabel:"OU directory (2026-10)",n:"Reserve Cut (Park Avenue)",k:"meat",t:"Steakhouse",area:"Midtown East",addr:"109 E 56th St (Park–Madison)",lat:40.76082,lng:-73.97061,phone:"(212) 242-4600"},
+{h:"ou",proof:"https://oukosher.org/restaurants/reserve-cut-at-setai/",plabel:"OU directory (2026-10)",n:"Reserve Cut (Broad Street)",k:"meat",t:"Steakhouse",area:"Financial District",addr:"40 Broad St, 2nd Level (The Setai)",lat:40.70603,lng:-74.011746,phone:"(212) 747-0300"},
+{h:"ou",proof:"https://oukosher.org/restaurants/mr-broadway/",plabel:"OU directory (2026-10)",n:"Mr. Broadway",k:"meat",t:"Mediterranean / American / deli / sushi",area:"Garment District",addr:"209 W 38th St (7th–8th Ave)",lat:40.753943,lng:-73.989285,phone:"(212) 921-2152",hours:"Sun 11:00–22:00 (take-out from 10:00); Mon–Thu 11:00–22:00 (take-out from 9:00); Fri 11:00–15:00 (winter until 14:00); Sat closed"},
+{h:"ou",proof:"https://oukosher.org/restaurants/mikes-bistro-2/",plabel:"OU directory (2026-10)",n:"Mike's Bistro",k:"meat",t:"Fine dining (meat)",area:"Midtown East",addr:"127 E 54th St (Lexington–Park)",lat:40.759348,lng:-73.971099,phone:"(212) 799-3911"},
+{h:"ou",proof:"https://oukosher.org/restaurants/le-marais-restaurant/",plabel:"OU directory (2026-10)",n:"Le Marais",k:"meat",t:"French steakhouse & butcher shop",area:"Theater District",addr:"150 W 46th St (6th–7th Ave)",lat:40.75801,lng:-73.984272,phone:"(212) 869-0900",hours:"Sun–Tue 11:30–23:00; Wed–Thu 11:30–24:00; Fri 11:30–14:00; Sat closed (take-out page also shows Sat 20:00–01:00)"},
+{h:"ou",proof:"https://oukosher.org/restaurants/smashhouse/",plabel:"OU directory (2026-10)",n:"Smash House (47th St)",k:"meat",t:"Smash burgers",area:"Diamond District",addr:"33 W 47th St, 3rd Fl",lat:40.757597,lng:-73.980217,phone:"(917) 475-1612",hours:"Sun 12:30–20:45; Mon–Thu 11:00–20:45; Fri–Sat closed",warn:"koshernear.me lists this branch under Vaad Harabonim of Queens; the OU directory and NY State registration say OU."},
+{h:"ou",proof:"https://oukosher.org/restaurants/mocha-burger-lux/",plabel:"OU directory (2026-10)",n:"Mocha Burger Lux",k:"meat",t:"Burgers",area:"Midtown (5th Ave / Grand Central)",addr:"4 E 46th St (Madison–5th)",lat:40.755613,lng:-73.978525,phone:"(212) 517-6353",hours:"Sun–Thu 11:30–24:00; Fri 10:30–15:00; Sat 21:00–02:00"},
+{h:"ou",proof:"https://oukosher.org/restaurants/famous-corner-usa-inc-dba-grill-point/",plabel:"OU directory (2026-10)",n:"Grill Point",k:"meat",t:"Mediterranean / shawarma",area:"Upper East Side",addr:"1215 Lexington Ave",lat:40.777118,lng:-73.957197,phone:"(646) 438-9494",hours:"Sun–Thu 11:00–23:00; Fri 10:00–15:30; Sat closed"},
+{h:"ou",proof:"https://oukosher.org/restaurants/mocha-red/",plabel:"OU directory (2026-10)",n:"NoMé (formerly Mocha Red)",k:"meat",t:"Steakhouse & cocktail bar",area:"Union Square",addr:"127 4th Ave (E 12th–13th St)",lat:40.73333,lng:-73.989745,phone:"(212) 419-8889",warn:"Rebranded from Mocha Red Steakhouse to NoMé (own site); koshernear.me still shows \"Mocha Burger\" at this address. The OU listing names both."},
+{h:"ou",proof:"https://oukosher.org/restaurants/mendys-take-out/",plabel:"OU directory (2026-10)",n:"Mendy's Take Out",k:"meat",t:"Take-out / prepared meals",area:"NoMad / Rose Hill",addr:"441 Park Ave S (E 29th–30th St)",lat:40.744396,lng:-73.983074,phone:"(212) 576-1010",hours:"Sun 11:00–18:00; Mon–Thu 9:00–20:00; Fri 9:00–15:00; Sat closed",warn:"Take-out shop; own site copyright 2021 — confirm current hours."},
+{h:"ou",proof:"https://oukosher.org/restaurants/tabernacle-steakhouse/",plabel:"OU directory (2026-10)",n:"Tabernacle Steakhouse",k:"meat",t:"Steakhouse & sushi",area:"Garment District / Hudson Yards",addr:"315 W 36th St",lat:40.754067,lng:-73.99334,phone:"(212) 933-7001",hours:"Lunch Mon–Thu 12:00–15:00; Dinner Sun–Thu 17:00–22:00; Fri–Sat closed"},
+{h:"ou",proof:"https://oukosher.org/restaurants/rothschild-tlv/",plabel:"OU directory (2026-10)",n:"Rothschild TLV",k:"meat",t:"Mediterranean / Israeli",area:"Upper East Side",addr:"1129 Lexington Ave (78th–79th St)",lat:40.774472,lng:-73.958951,phone:"(917) 341-4169",hours:"Sun–Thu 12:00–22:00; Fri 12:00–16:00; Sat closed"},
+{h:"ou",proof:"https://oukosher.org/restaurants/wall-street-grill-glatt/",plabel:"OU directory (2026-10)",n:"Wall Street Grill",k:"meat",t:"Steakhouse (rooftop)",area:"Financial District",addr:"128 Pearl St",lat:40.705226,lng:-74.008088,phone:"(212) 635-5757",price:4,warn:"OU directory phone is 212-635-3757; own site and koshernear.me give (212) 635-5757."},
+{h:"ou",proof:"https://oukosher.org/restaurants/barnea-bistro-llc/",plabel:"OU directory (2026-10)",n:"Barnea Bistro",k:"meat",t:"French fine dining",area:"Midtown East / Turtle Bay",addr:"211 E 46th St (2nd–3rd Ave)",lat:40.753103,lng:-73.971686,phone:"(212) 461-1001",hours:"Sun–Thu 17:00–22:30; Fri–Sat closed"},
+{h:"ou",proof:"https://oukosher.org/restaurants/lox-at-the-museum-of-jewish-heritage/",plabel:"OU directory (2026-10)",n:"Lox Cafe (Museum of Jewish Heritage)",k:"dairy",t:"Jewish / Russian dairy café",area:"Battery Park City",addr:"36 Battery Pl",lat:40.706119,lng:-74.018281,phone:"(646) 437-4231",hours:"Sun–Thu 10:00–18:00; Fri 10:00–15:00; Sat closed"},
+{h:"ou",proof:"https://oukosher.org/restaurants/pita-grill/",plabel:"OU directory (2026-10)",n:"Pita Grill",k:"meat",t:"Mediterranean / shawarma / sushi",area:"Midtown East (Sutton)",addr:"1083 2nd Ave (at 57th St)",lat:40.75953,lng:-73.965354,phone:"(212) 750-1122"},
+{h:"ou",proof:"https://oukosher.org/restaurants/la-brochette/",plabel:"OU directory (2026-10)",n:"La Brochette",k:"meat",t:"Steakhouse & sushi",area:"Murray Hill",addr:"340 Lexington Ave (39th–40th St)",lat:40.749879,lng:-73.977493,phone:"(212) 972-2200",hours:"Sun 14:00–22:00; Mon–Thu 12:00–22:00; Fri closed; Sat from 1 hr after Shabbat",warn:"Own site header names Tartikov supervision as well; the OU lists it in its directory."},
+{h:"ou",proof:"https://oukosher.org/restaurants/taam-tov/",plabel:"OU directory (2026-10)",n:"Taam Tov",k:"meat",t:"Restaurant (meat)",area:"Diamond District",addr:"41 W 47th St, 3rd Fl",lat:40.75772,lng:-73.98051,phone:"(212) 768-8001",warn:"Ordering site (ordertaamtov.com) redirects elsewhere and did not load; confirm hours."},
+{h:"ou",proof:"https://oukosher.org/restaurants/milk-n-honey-nyc/",plabel:"OU directory (2026-10)",n:"Milk 'N Honey",k:"dairy",t:"Dairy restaurant",area:"Midtown (5th Ave / Grand Central)",addr:"12 E 46th St (Madison–5th)",lat:40.755471,lng:-73.978199,phone:"(212) 764-4400",warn:"Own website did not load at check time; confirm hours."},
+{h:"ou",proof:"https://oukosher.org/restaurants/fischer-brothers-leslie/",plabel:"OU directory (2026-10)",n:"Fischer Brothers & Leslie",k:"meat",t:"Butcher & prepared foods (take-out)",area:"Upper West Side",addr:"230 W 72nd St (Amsterdam–West End)",lat:40.779008,lng:-73.983249,phone:"(212) 787-1715",warn:"Butcher shop with prepared foods to take out; not a sit-down restaurant."},
+{h:"ou",proof:"https://oukosher.org/restaurants/eden-wok-34-st/",plabel:"OU directory (2026-10)",n:"Eden Wok",k:"meat",t:"Chinese & sushi",area:"Murray Hill",addr:"43 E 34th St (Madison–Park)",lat:40.747702,lng:-73.982386,phone:"(212) 725-8100",hours:"Sun–Thu 11:00–20:30; Fri 11:00–15:00; Sat closed"},
+{h:"ok",proof:"https://www.ok.org/restaurant/stacked-and-toasted/",plabel:"OK restaurant guide (2026-10)",n:"Stacked and Toasted",k:"meat",t:"Sandwiches (take-out / delivery)",area:"Diamond District",addr:"26 W 47th St, Lower Level",lat:40.757013,lng:-73.980001,phone:"(212) 221-7480",hours:"Mon–Thu 10:15–18:00; Fri 10:15 until 3 hrs before Shabbat; Sat–Sun closed",warn:"Shares space and phone with Sushi Fussion; mainly take-out/delivery."},
+{h:"ok",proof:"https://www.ok.org/restaurant/libbi/",plabel:"OK restaurant guide (2026-10)",n:"Libbi",k:"dairy",t:"Mediterranean dairy",area:"Upper East Side",addr:"205 E 81st St",lat:40.775534,lng:-73.955859,phone:"(646) 809-3232"},
+{h:"ok",proof:"https://www.ok.org/restaurant/sushi-tokyo-nyc/",plabel:"OK restaurant guide (2026-10)",n:"Sushi Tokyo",k:"pareve",t:"Sushi",area:"Upper West Side",addr:"660 Amsterdam Ave (92nd St)",lat:40.791735,lng:-73.97231,phone:"(212) 633-4330"},
+{h:"ok",proof:"https://www.ok.org/restaurant/house-of-glatt-at-six-60-one/",plabel:"OK restaurant guide (2026-10)",n:"House of Glatt (Six 60 One)",k:"meat",t:"Prepared meat counter (take-out, in kosher supermarket)",area:"Upper West Side",addr:"661 Amsterdam Ave (inside Six 60 One)",lat:40.791524,lng:-73.971947,phone:"(212) 222-6332",warn:"Counter inside the Six 60 One supermarket; take-out."},
+{h:"ok",proof:"https://www.ok.org/wp-content/uploads/pdf/10403/10403_2026-09-16-1789585550.pdf",plabel:"OK certificate (2026-09)",n:"Acai Bar Cafe (Six 60 One)",k:"dairy",t:"Açaí bowls / café",area:"Upper West Side",addr:"661 Amsterdam Ave (inside Six 60 One)",lat:40.791524,lng:-73.971947,warn:"Sources disagree on the certifier: ok.org's own certificate PDF (2026-09-16) says OK; Yeah That's Kosher (2026-09) and Kosher Near Me give \"CRC/Tarnapul\" (Hisachdus with Tarnopol, also on the cRc list). Either way it is a cRc-listed agency — check the certificate on site."},
+{h:"ok",proof:"https://www.ok.org/restaurant/simply-sushi-at-six-60-one/",plabel:"OK restaurant guide (2026-10)",n:"Simply Sushi (Six 60 One)",k:"pareve",t:"Sushi counter (take-out, in kosher supermarket)",area:"Upper West Side",addr:"661 Amsterdam Ave (inside Six 60 One)",lat:40.791524,lng:-73.971947,phone:"(212) 222-6332",warn:"Counter inside the Six 60 One supermarket; OK lists it under \"kosher supermarket\". Pareve assumed for sushi — confirm."},
+{h:"ok",proof:"https://www.ok.org/restaurant/pitabar/",plabel:"OK restaurant guide (2026-10)",n:"PitaBar",k:"meat",t:"Israeli / Mediterranean pitas",area:"Lower East Side",addr:"11 Delancey St (Chrystie St–Bowery)",lat:40.719891,lng:-73.993412,phone:"(917) 684-6853",price:2},
+{h:"ok",proof:"https://www.ok.org/restaurant/rosies-kosher-pizza/",plabel:"OK restaurant guide (2026-10)",n:"Rosie's Kosher Pizza",k:"dairy",t:"Pizza",area:"Garment District",addr:"1385 Broadway",lat:40.752648,lng:-73.987579,phone:"(917) 628-2190",hours:"Sun–Thu 9:00–20:30; Fri 9:00–15:00; Sat 19:00–24:00"},
+{h:"ok",proof:"https://www.ok.org/restaurant/osaka-sushi/",plabel:"OK restaurant guide (2026-10)",n:"Osaka Sushi",k:"pareve",t:"Sushi",area:"Upper East Side (Lenox Hill)",addr:"1165A 2nd Ave",lat:40.76219,lng:-73.963522,phone:"(646) 455-0058"},
+{h:"ok",proof:"https://www.ok.org/restaurant/sushi-fussion-of-47th-street/",plabel:"OK restaurant guide (2026-10)",n:"Sushi Fussion (47th St)",k:"pareve",t:"Sushi (take-out / delivery)",area:"Diamond District",addr:"26 W 47th St, Lower Level",lat:40.757013,lng:-73.980001,phone:"(212) 221-7480",hours:"Mon–Thu 10:15–18:00; Fri 10:15 until 3 hrs before Shabbat; Sat–Sun closed",warn:"Shares space with Stacked and Toasted (meat menu, same phone) — check which counter you order from."},
+{h:"ok",proof:"https://www.ok.org/restaurant/tiberias/",plabel:"OK restaurant guide (2026-10)",n:"Tiberias",k:"dairy",t:"Dairy & fish, sushi",area:"Murray Hill",addr:"45 E 34th St (Madison–Park)",lat:40.74777,lng:-73.982232,phone:"(212) 481-4222",hours:"Sun–Thu 12:00–01:00; Fri closed; Sat 1 hr after Shabbat–02:00"},
+{h:"ok",proof:"https://www.ok.org/restaurant/noi-due-gelato/",plabel:"OK restaurant guide (2026-10)",n:"Noi Due Gelato",k:"dairy",t:"Gelato",area:"Upper West Side",addr:"489 Columbus Ave",lat:40.784758,lng:-73.973026,phone:"(212) 712-2222"},
+{h:"ok",proof:"https://www.ok.org/restaurant/noi-due-cafe/",plabel:"OK restaurant guide (2026-10)",n:"Noi Due Cafe",k:"dairy",t:"Italian dairy café",area:"Upper West Side",addr:"491 Columbus Ave",lat:40.784823,lng:-73.972993,phone:"(212) 712-2222"},
+{h:"ok",proof:"https://www.ok.org/restaurant/noi-due-carne/",plabel:"OK restaurant guide (2026-10)",n:"Noi Due Carne",k:"meat",t:"Italian (meat)",area:"Lincoln Square / Upper West Side",addr:"141 W 69th St",lat:40.776245,lng:-73.981466,phone:"(212) 712-2223"},
+{h:"ok",proof:"https://www.ok.org/restaurant/jerusalem-cafe/",plabel:"OK restaurant guide (2026-10)",n:"Jerusalem Cafe",k:"dairy",t:"Dairy café",area:"Midtown South (Herald Sq)",addr:"7 W 36th St",lat:40.750215,lng:-73.984294,phone:"(212) 398-1475"},
+{h:"ok",proof:"https://www.ok.org/restaurant/holy-schnitzel/",plabel:"OK restaurant guide (2026-10)",n:"Holy Schnitzel (UWS)",k:"meat",t:"Schnitzel / fast casual",area:"Upper West Side",addr:"654 Amsterdam Ave (92nd St)",lat:40.791474,lng:-73.972481,phone:"(212) 362-4659"},
+{h:"ok",proof:"https://www.ok.org/restaurant/eighteen-restaurant/",plabel:"OK restaurant guide (2026-10)",n:"Eighteen Restaurant",k:"meat",t:"Restaurant (meat)",area:"Upper East Side",addr:"240 E 81st St (2nd–3rd Ave)",lat:40.774684,lng:-73.954658,phone:"(212) 517-2400",hours:"Sun–Thu 12:00–22:00 (kitchen close); Fri take-out/delivery only; Sat (winter) from 1 hr after sundown"},
+{h:"ok",proof:"https://www.ok.org/restaurant/deli-kasbah/",plabel:"OK restaurant guide (2026-10)",n:"Kasbah Grill (Deli Kasbah)",k:"meat",t:"Grill / deli",area:"Upper West Side",addr:"251 W 85th St",lat:40.787863,lng:-73.977306,phone:"(212) 496-1500",hours:"Sun–Thu 12:00–21:30"},
+{h:"ok",proof:"https://www.ok.org/restaurant/bravo-pizza/",plabel:"OK restaurant guide (2026-10)",n:"Bravo Pizza (Midtown)",k:"dairy",t:"Pizza",area:"Midtown South (Herald Sq)",addr:"378 5th Ave (35th–36th St)",lat:40.749342,lng:-73.984144,phone:"(212) 268-4499",hours:"Sun 11:00–22:00; Mon–Tue 11:00–22:00; Wed–Thu 11:00–23:00; Fri 10:00–14:00; Sat 19:00–02:00"},
+{h:"ok",proof:"https://www.ok.org/restaurant/abaita/",plabel:"OK restaurant guide (2026-10)",n:"Abaita",k:"dairy",t:"Italian dairy (Cholov Yisroel)",area:"Midtown East",addr:"145 E 49th St (3rd–Lexington)",lat:40.755757,lng:-73.972031,phone:"(646) 808-5518",hours:"Sun–Thu 12:00–21:00; Fri 11:45–14:00; Sat nights open in winter",warn:"Hotel restaurant (address is The Bayard Hotel) — the cRc advises extra diligence for hotels; check the certificate on site. The restaurant itself is OK-certified."},
+{n:"Kosher Stands @ Madison Square Garden",h:"kofk",k:"meat",t:"Arena kosher concession stands",area:"Chelsea / Penn Station",addr:"Madison Square Garden, 4 Pennsylvania Plaza",lat:40.750513,lng:-73.993516,phone:"(212) 465-4447",proof:"https://kof-k.org/home#Search",plabel:"Kof-K establishment search (2026-10)",warn:"Open only during events, inside the arena (ticket required); stand location varies by event."},
+{n:"Park East Kosher",h:"kofk",k:"meat",t:"Butcher & prepared foods (take-out)",area:"Yorkville / Upper East Side",addr:"1733 1st Ave (89th–90th St)",lat:40.77935,lng:-73.94783,phone:"(212) 737-9800",hours:"Sun 8:30–17:30; Mon–Wed 8:00–19:30; Thu 8:00–21:00; Fri 6:00 until 3 hrs before Shabbat; Sat closed",proof:"https://kof-k.org/home#Search",plabel:"Kof-K establishment search (2026-10)",warn:"Butcher / gourmet shop with take-out prepared foods; not a sit-down restaurant."},
+{n:"The Coffee Bar @ Ouri's Market",h:"stark",k:"dairy",t:"Coffee bar (in kosher market)",area:"Upper East Side (Lenox Hill)",addr:"1160 3rd Ave",lat:40.767064,lng:-73.962973,phone:"(212) 794-9500",proof:"https://www.star-k.org/retail-establishments",plabel:"Star-K establishment list (2026-10)",warn:"Star-K list does not state dairy/meat (assumed dairy for a coffee bar) and shows no certificate letter for this NY branch; koshernear.me says \"check at location\" for the market itself."},
+{n:"Lechayim (Key Food counter)",h:"kaj",k:"meat",t:"Take-out counter (in supermarket)",area:"Washington Heights",addr:"4365 Broadway (inside Key Food)",lat:40.854016,lng:-73.933989,proof:"https://www.kajinc.org/services/kashrus",plabel:"KAJ kashrus list (2026-10)",warn:"Take-out counter inside Key Food; KAJ list does not state meat/dairy (meat assumed because the Key Food meat dept is KAJ meat & poultry). Confirm on site."},
+{n:"Carlos & Gabby's / Graze Smokehouse / Mexikosher",h:"ou",k:"meat",t:"Mexican, smokehouse BBQ, fried chicken (shared kitchen)",area:"Upper West Side",addr:"100 W 83rd St (Columbus-Amsterdam)",lat:40.7845961,lng:-73.9739826,phone:"(212) 580-6200",price:2,nut:"Mixed",order:"Smoked brisket or grilled-chicken bowl/tacos; skip the fried sides",hours:"Sun–Thu 11:00–21:00; Fri closed; Sat closed",proof:"https://oukosher.org/restaurants/mexi-kosher-nyc/",plabel:"OU directory (2026-10)"},
+{n:"Casa Tevere",h:"jsor",k:"meat",t:"Roman-Jewish Italian fine dining",area:"Upper East Side",addr:"1207 Lexington Ave (81st-82nd St)",lat:40.7766419,lng:-73.9574843,phone:"(347) 352-2297",price:3,nut:"Balanced",order:"Veal or meat secondo with vegetables; share a handmade pasta as a starter",hours:"Sun–Thu lunch 11:30–14:30/15:00, dinner 17:00–22:00/23:00; Fri closed; Sat after Shabbat only (time varies)",proof:"https://www.ckj.org/kosherinnyc",plabel:"KJ Kosher in NYC list (updated 2026-10-13)",warn:"Hours differ between the JSOR guide (dinner to 22:00) and OpenTable/AAA (to 23:00, plus a fixed Sat 18:30 opening). On Saturday it opens only after Shabbat. Confirm before going."},
+{n:"Chickies at Madison Square Garden",h:"kofk",k:"meat",t:"Arena kosher stand: schnitzel, deli sandwiches, poke",area:"Penn Station / Garment District",addr:"Madison Square Garden, 4 Pennsylvania Plaza (6th fl. concourse, Section 111)",lat:40.7505129,lng:-73.9935159,price:2,nut:"Mixed",order:"Grilled Chicken Sandwich ($25) or Poke Bowl ($27)",hours:"Only during Knicks/Rangers home games and concerts; closed Shabbat and Yom Tov",proof:"https://yeahthatskosher.com/2026/10/chickies-kosher-madison-square-garden-knicks-rangers/",plabel:"Yeah That's Kosher (2026-10-17)",warn:"Inside Madison Square Garden: event ticket required; open on event days only."},
+{n:"JJ Deli",h:"tarnopol",k:"meat",t:"Deli: pastrami, sandwiches, burgers",area:"Financial District",addr:"17 Trinity Place (Morris-Rector St)",lat:40.7066673,lng:-74.0135136,phone:"(646) 808-3354",price:2,nut:"High-protein",order:"Grilled chicken sandwich; swap the fries for slaw",hours:"Mon–Thu 11:00–18:30; Fri 11:00–14:00; Sat closed (Jewish Link, undated)",proof:"https://www.ckj.org/kosherinnyc",plabel:"KJ Kosher in NYC list (updated 2026-10-13)",warn:"Hours are from an undated Jewish Link item; Sunday hours unknown."},
+{n:"Kosher Poke",h:"ou",k:"pareve",t:"Poke bowls",area:"Murray Hill / Midtown East",addr:"43 E 34th St",lat:40.7477019,lng:-73.9823857,phone:"(212) 725-3179",proof:"https://www.ckj.org/kosherinnyc",plabel:"CKJ Kosher In NYC list (2026-10)",nut:"High-protein",order:"Salmon or tuna poke over greens or brown rice",warn:"A counter inside the Eden Wok (OU, meat) complex. The OU directory lists the complex as \"Eden Wok-34 St.\" and does not name the poke counter separately; ask whether it is pareve."},
+{n:"LOX at Cafe Bergson (Museum of Jewish Heritage)",h:"ou",k:"dairy",t:"Dairy café (smoked fish, bagels) – Cholov Yisroel",area:"Battery Park City",addr:"36 Battery Pl (Museum of Jewish Heritage)",lat:40.7059551,lng:-74.0185571,phone:"(646) 437-4231",price:2,nut:"High-protein",order:"Bagel with lox or a smoked-fish salad",hours:"Sun–Thu 10:00–18:00; Fri 10:00–15:00; Sat closed",proof:"https://oukosher.org/restaurants/lox-at-the-museum-of-jewish-heritage/",plabel:"OU directory (2026-10)",warn:"Museum café: open when the museum is open; hours may change on holidays."},
+{n:"Mocha Burger (Union Square)",h:"ou",k:"meat",t:"Burgers",area:"Union Square / Greenwich Village",addr:"127 4th Ave",lat:40.7333299,lng:-73.9897455,phone:"(212) 381-1172",proof:"https://www.mochaburger.com/",plabel:"own site + OU certificate link (2026-10)",nut:"Fried/fast food",order:"Grilled chicken sandwich or lettuce-wrap burger with salad",warn:"The OU directory lists this address as \"Mocha Red aka Nome\", and koshernear.me lists both Mocha Burger and Nomé at 127 4th Ave with different phones. Check which concept is operating."},
+{n:"Neto Chocolatier",h:"tartikov",k:"pareve",t:"Chocolatier (shop)",area:"Upper East Side",addr:"197 E 76th St",lat:40.7725933,lng:-73.9590158,phone:"(347) 860-9606",proof:"https://www.ckj.org/kosherinnyc",plabel:"CKJ Kosher In NYC list (2026-10)",nut:"Sweet/dessert",order:"Dark-chocolate almond clusters",warn:"Chocolate boutique (packaged and loose chocolates), not a café. Current hours not confirmed."},
+{n:"Ouri's Market",h:"stark",k:"meat",t:"Kosher market with sushi, bagel bar and prepared food",area:"Upper East Side",addr:"1160 3rd Ave (67th–68th St)",lat:40.7670639,lng:-73.962973,phone:"(212) 794-9500",proof:"https://apiservice.star-k.org/api/Loc/LoadLoc/RX7W36ZM",plabel:"Star-K certificate (valid to 2026-12-31)",nut:"Mixed",order:"Sushi or grilled-chicken prepared foods",warn:"A supermarket. Departments differ (meat glatt; bagel bar dairy; sushi and fish pareve). Packaged goods carry their own hechsherim."},
+{n:"Patis Bakery & Cafe",h:"tartikov",k:"dairy",t:"Bakery / café",area:"Upper West Side",addr:"676 Amsterdam Ave (92nd–93rd St)",lat:40.7921021,lng:-73.9720464,phone:"(646) 449-8730",proof:"https://www.ckj.org/kosherinnyc",plabel:"CKJ Kosher In NYC list (2026-10)",nut:"Carb-heavy",order:"Shakshuka or egg sandwich with salad",warn:"The chain went bankrupt in 2024 and has closed several branches (UES, FiDi). Agency-directory confirmation was not available; based on CKJ + koshernear.me."},
+{n:"Reserve Cut Park",h:"ou",k:"meat",t:"Steakhouse",area:"Midtown East",addr:"109 E 56th St",lat:40.7607479,lng:-73.9706036,phone:"(212) 242-4600",proof:"https://oukosher.org/restaurants/reserve-cut-park/",plabel:"OU directory (2026-10)",nut:"High-protein",order:"Steak or grilled fish with vegetables"},
+{n:"Shmash",h:"ou",k:"meat",t:"Smash burgers / schnitzel (ghost kitchen, delivery & pickup)",area:"Upper East Side",addr:"1129 Lexington Ave",lat:40.774472,lng:-73.958951,price:2,nut:"Fried/fast food",order:"Dry-aged grilled burger with salad instead of fries",hours:"Sun–Thu 12:00–22:00; Fri closed; Sat closed",proof:"https://yeahthatskosher.com/2026/04/new-kosher-smash-burger-ghost-kitchen-in-nyc-shmash/",plabel:"Yeah That's Kosher (2026-04); OU directory lists host kitchen Rothschild TLV",warn:"Delivery and pickup only, with no walk-in counter. It runs out of the Rothschild TLV kitchen, and the OU directory names Rothschild TLV, not Shmash."},
+{n:"Sip & Sizzle",h:"ou",k:"meat",t:"Bukharian / Mediterranean steakhouse (dine-in, take-out, delivery)",area:"Upper East Side (Yorkville)",addr:"1599 York Ave (84th–85th St)",lat:40.7751874,lng:-73.9480643,phone:"(212) 535-3700",price:3,nut:"High-protein",order:"Grilled kebabs/shashlik with salad",hours:"Mon–Thu 11:30–22:30; Sun 13:30–22:30; Fri–Sat closed",proof:"https://www.ckj.org/kosherinnyc",plabel:"CKJ Kosher in NYC (2026-10) + KosherNearMe",warn:"Not in the OU website's restaurant directory. OU is named by CKJ, KosherNearMe and the restaurant itself."},
+{n:"Six60One – Kosher on Amsterdam",h:"ok",k:"meat",t:"Kosher supermarket with deli, sushi, pizza & bagel counters",area:"Upper West Side",addr:"661 Amsterdam Ave (W 92nd–93rd St)",lat:40.79166,lng:-73.97189,phone:"(212) 222-6332",price:2,nut:"Mixed",order:"Sushi or deli salad from the prepared counters",hours:"Sat closed",proof:"https://www.ckj.org/kosherinnyc",plabel:"CKJ Kosher in NYC (2026-10) + KosherNearMe",warn:"Supermarket with separate prepared-food counters: a meat deli/poultry counter and a dairy pizza/bagel counter. Check each counter's status. The OK's own listing was not checked because the ok.org directory was unavailable."},
+{n:"Viva La Dough (FiDi)",h:"ou",k:"dairy",t:"Patisserie / café (croissants, croissant pizza, mousse pastries) – Cholov Yisroel",area:"Financial District",addr:"160 Broadway (Maiden Ln–Liberty St)",lat:40.70938,lng:-74.01003,price:2,nut:"Sweet/dessert",order:"Omelette or breakfast sandwich rather than pastries",proof:"https://yeahthatskosher.com/2026/06/viva-la-dough-opens-new-location-in-nycs-fidi/",plabel:"Yeah That's Kosher (2026-06) + CKJ"},
+{n:"Viva La Dough (Midtown)",h:"ou",k:"dairy",t:"Patisserie / café (croissants, croissant pizza, mousse pastries) – Cholov Yisroel",area:"Garment District / Herald Square",addr:"525 7th Ave (W 38th–39th St)",lat:40.753635,lng:-73.988482,price:2,nut:"Sweet/dessert",order:"Omelette or breakfast sandwich rather than pastries",proof:"https://www.ckj.org/kosherinnyc",plabel:"CKJ Kosher in NYC (2026-10) + KosherNearMe (2026-10)"},
+{n:"Yeshiva University – Wilf Campus Dining",h:"ou",k:"meat",t:"University dining (meat & dairy)",area:"Washington Heights",addr:"500 W 185th St",lat:40.850656,lng:-73.929868,phone:"(212) 960-5248",price:1,nut:"Mixed",proof:"https://oukosher.org/restaurants/yeshiva-university-wilf-campus/",plabel:"OU directory (2026-10)",warn:"Campus dining with both meat and dairy venues, mainly for students, so public access and hours vary with the academic calendar."},
+{n:"Lox at the Jewish Museum",h:"ou",k:"dairy",t:"Jewish appetizing café (smoked fish, bagels, blintzes)",area:"Upper East Side (Carnegie Hill)",addr:"1109 5th Ave (at E 92nd St), lower level of the Jewish Museum",lat:40.7854097,lng:-73.9571827,phone:"(212) 423-3200",price:2,nut:"High-protein",order:"Bagel and lox or a smoked-fish platter; borscht",rev:"No Google rating captured; Eastside Feed / Upper East Site describe house-cured fish and Ashkenazi classics",hours:"Sun & Mon 11:00–18:00; Thu 11:00–20:00 (Eastside Feed, Nov 2024); other days not listed; Sat closed",proof:"https://www.ckj.org/kosherinnyc",plabel:"CKJ Kosher in NYC (2026-10)",warn:"Hours come from a Nov 2024 article; confirm with the museum (the phone number is the museum's main line). Not the same as Lox Cafe at the Museum of Jewish Heritage."},
+{n:"Cafe 11",h:"ou",k:"dairy",t:"Dairy lobby café (bagels, sandwiches, salads, sushi)",area:"Financial District",addr:"11 Broadway (lobby, S of Morris St)",lat:40.7052865,lng:-74.0140236,phone:"(212) 425-2233",price:1,nut:"Mixed",order:"Garden or Caesar salad, or an egg/tuna salad sandwich",rev:"No rating captured; Cholov & Pas Yisroel lobby café",hours:"Mon–Thu 8:00–17:00; Fri 8:00–14:00; Sat–Sun closed",proof:"https://www.cafe11nyc.com/",plabel:"own site (2026-10)"},
+{n:"Greenwich & Delancey (West St)",h:"ou",k:"meat",t:"Deli / sandwiches",area:"Financial District / Battery Park City",addr:"50 West St",lat:40.7078393,lng:-74.0150095,phone:"(212) 884-1558",price:2,nut:"High-protein",order:"Turkey or grilled-chicken sandwich / salad",rev:"No rating captured",hours:"Not confirmed; check before visiting",proof:"https://oukosher.org/restaurants/greenwich-delancey-west-st/",plabel:"OU directory (2026-10)",warn:"Hours not verified."},
+];
+
+DATA.manhattan.UNCONF = [
+ ["Smash House (37th St)","Smash House (63 W 37th St): NY State kosher registration (Smash House 37th St LLC) and koshernear.me name OU, but the branch is NOT in the OU directory (only the 47th St branch is), and the brand site names no certifier for this branch. Open (own site: Mon–Thu 11–24, Fri 11–17, Sat 20–02, Sun 12:30–24). Check the OU certificate on site. CKJ's Kosher in NYC list (2026-10-13) names Vaad Harabonim of Queens instead, which is single-source and conflicts with the OU claim, so this branch stays Questionable."],
+ ["Bravo Kosher Pizza (Downtown) (17 Trinity Pl)","Questionable: the OK guide still lists \"Bravo Kosher Pizza\", 17 Trinity Place (certificate file dated 2026-10-05). But Jewish Link (byline 2026-08-27) reports that JJ Deli (Tarnopol) is \"taking over the former Bravo Pizza space at 17 Trinity Place\". Bravo's own store locator no longer lists a Downtown/Trinity branch (its only Manhattan branch is Midtown). The branch has probably closed and the OK listing is stale."],
+ ["Wolf and Lamb Steakhouse","OK Kosher per NY State registration and koshernear.me, but not in OK's own restaurant guide; the restaurant's own site says \"WE ARE CURRENTLY CLOSED AS WE PREPARE TO MOVE TO AN EXCITING NEW HOME 10 MIN. WALK AWAY\" — new address and current certificate unconfirmed."],
+ ["Carvel (Times Square) (165 W 48th St)","Questionable at best (likely exclude): Kof-K lists \"CARVEL STORE (TIME SQUARE) #104245\" (Parve, D.E., Dairy, 212-300-4090). But a search snippet of Carvel's own location page for 165 W 48th St (same phone) gives Saturday hours of 10:00 AM–4:00 AM, so the store appears to open on Shabbat, and a place open on Shabbat does not qualify. The Kof-K listing gives no street address."],
+ ["SoomSoom (1108 Lexington Ave, UES)","IKC (Rabbi Zev Schwarcz) per NY State registry — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json). The Lenox Hill spot rebranded from Tamam Falafel to SoomSoom and added meat (Upper East Site, 2026-01-16). Shabbat hours not verified; otherwise only a Yelp kosher-filter hit."],
+ ["Ama La Vita (121 W 19th St)","Rabbi Avrohom Marmorstein — Mehadrin Kashrus / Vaad Kashrus Mehadrin (koshernear.me 2026-09; NY State registry; ckj.org). Orthodox supervision commonly relied on in Manhattan, but Vaad Kashrus Mehadrin is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json). Dairy/vegetarian Italian."],
+ ["Shawarma Shabazi (668B Amsterdam Ave)","Rabbi Marmorstein — Mehadrin Kosher Supervision Service (koshernear.me 2026-09; NY State registry; ckj.org). Orthodox supervision commonly relied on, but not on the cRc list. Meat."],
+ ["Akimori (858 Lexington Ave, UES)","Vaad Kashrus Mehadrin (VKM, Rabbi Marmorstein) per koshernear.me (2026-09), NY State registry and ckj.org — Orthodox supervision commonly relied on, not on the cRc list. Sushi (pareve/fish)."],
+ ["The Kosher Marketplace (2442 Broadway)","Rabbi Marmorstein / Mehadrin Kashrus (koshernear.me 2026-09; NY State registry; ckj.org) — Orthodox, not on the cRc list. Supermarket with prepared foods (meat/dairy/fish counters)."],
+ ["Miznon Kosher (1410 Broadway, Times Square)","Rabbi Aaron D. Mehlman (National Kosher Supervision) per koshernear.me (2026-09) and NY State registry — Orthodox rabbinic supervision, but National Kosher Supervision is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json). Shabbat closure not verified."],
+ ["16 Handles (1569 2nd Ave, UES)","National Kosher Supervision (Rabbi Mehlman) per koshernear.me (2026-09) and NY State registry — Orthodox supervision but not on the cRc list; Shabbat hours not verified (frozen-yogurt chain). Branch is on the official locator."],
+ ["16 Handles (325 Amsterdam Ave, UWS)","Rabbi Mehlman (NKS) per koshernear.me (2026-09) — not on the cRc list; Shabbat hours not verified. On the official locator."],
+ ["16 Handles (178 8th Ave, Chelsea)","NKS per koshernear.me (2026-09) — not on the cRc list; Shabbat hours not verified. On the official locator."],
+ ["16 Handles (428 3rd Ave, Kips Bay)","NKS per totallyjewishtravel — single directory source, agency not on the cRc list; Shabbat hours not verified. On the official locator."],
+ ["Chop Chop (501 W 184th St)","Vaad Harabonim of Riverdale (koshernear.me 2026-09; NY State registry; ckj.org) — Orthodox vaad widely relied on in Washington Heights/Riverdale, but Vaad Harabonim of Riverdale is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json). Meat."],
+ ["Golan Heights (2553 Amsterdam Ave)","Vaad Harabonim of Riverdale (koshernear.me 2026-09; NY State registry; ckj.org) — Orthodox, not on the cRc list. Meat."],
+ ["Sushi Heights (2557 Amsterdam Ave)","Vaad Harabonim of Riverdale per NY State registry, totallyjewishtravel and ckj.org — Orthodox, not on the cRc list; not found in the koshernear.me crawl."],
+ ["Burgers & Grill (2543 Amsterdam Ave)","Vaad Harabonim of Riverdale (koshernear.me \"Burgers & Grill\" 2026-09; NY State registry) — Orthodox, not on the cRc list. Meat."],
+ ["16 Handles East Village (153 2nd Ave)","International Kosher Council per totallyjewishtravel (single source) — not on the cRc list; Shabbat hours not verified. On the official locator."],
+ ["Ample Hills Creamery (526 Amsterdam Ave, UWS)","Rabbi Mehlman / National Kosher Supervision (koshernear.me 2026-09; YTK 2026-05) — not on the cRc list; Shabbat hours not verified (ice-cream chain)."],
+ ["Amsterdam Burger (100 W 83rd St)","Questionable: the OU listing for 100 W 83rd St names Carlos & Gabby's / Graze Smokehouse / Mexi Kosher / Rosa's, not Amsterdam Burger. The operator's own Graze Brands page describes the 100 W 83rd St shared space as Carlos & Gabby's, Graze Smokehouse and Mexi-Ko, all OU, with no mention of Amsterdam Burger. The brand at this address rests only on the 2023 Jewish Link move article, koshernear.me/ckj and an Uber Eats listing. It may now be only a delivery brand of the same OU kitchen, which CAND:17/149 already cover."],
+ ["Babka Bailout (Bryant Park Winter Village stand)","CMS Kashrus (Congregation Mount Sinai, Jersey City — Rabbi Netanel Reed), per YTK 2024 and koshernear.me (Jersey City bakery) — local Orthodox supervision, not on the cRc list; seasonal stand, 2026 season participation not confirmed."],
+ ["Bagel Boss of Murray Hill (544 3rd Ave)","Rabbi Asher Schechter / Congregation Ohr Moshe (two koshernear.me entries, 2026-09) — local Orthodox rabbinic supervision, not on the cRc list."],
+ ["Bagels & Co. (1428 York Ave, UES)","\"NY Kosher - R' Yaakov Neiman\" (koshernear.me 2026-09); NY State registry lists \"New York Kosher\" for York Ave/76th — not on the cRc list; reliability of this supervision not established."],
+ ["Bagels & Co. (391 Amsterdam Ave, UWS)","Vaad Kashrus Mehadrin (koshernear.me 2026-09; ckj.org) but NY State registry lists \"New York Kosher\" for 391 Amsterdam — conflicting sources; neither agency is on the cRc list."],
+ ["Bar Nena (63 Carmine St)","IKC (koshernear.me 2026-09) — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); own site blocked (403), Shabbat hours not verified."],
+ ["Bravo Pizza (877 8th Ave, Theater District)","OK per YTK (2024-08, \"Kosher certification under the OK\") — single source older than 12 months; the current OK restaurant guide lists only the 378 5th Ave and 17 Trinity Pl Bravo branches in Manhattan, so status is unclear."],
+ ["Buffalo2Go (43 E 34th St)","Listed as OU only in a 2020 list (KJ's Manhattan Kosher Establishments, 5/18/2020) — stale single source. The current OU directory lists Eden Wok-34 St at 43 E 34th St but not Buffalo2Go; current operation not confirmed."],
+ ["Burgers & Grill (2543 Amsterdam Ave, Washington Heights)","Hechsher: Vaad Harabonim of Riverdale (VHR), an Orthodox vaad commonly relied on in Riverdale/Washington Heights but NOT on the cRc acceptable list. Listed with VHR on the KJ \"Kosher in NYC\" list (updated 2026-10-13) and on KosherNearMe; meat restaurant next to Yeshiva University, phone (212) 543-8017."],
+ ["Caffe Aronne UES (976A Lexington Ave)","Hechsher: Rabbi Aaron Mehlman / National Kosher Supervision (KJ list 2026-10-13 \"R. Mehlman\"; KosherNearMe; YTK 2024-05: \"kosher certification from Rabbi Mehlman (Only this location)\"). NKS is not on the cRc acceptable list. Fully kosher dairy cafe, phone (646) 798-2299 (KJ)."],
+ ["Caffe Aronne UWS (inside JCC Manhattan, 334 Amsterdam Ave at W 76th St)","Hechsher: Vaad Kashrus Mehadrin (VKM), which is not on the cRc acceptable list. YTK (2026-08-02): dairy/pareve, pas yisroel, not cholov yisroel; Sun-Fri 7am-7pm (earlier on Fri), closed on Shabbat, Yom Tov and all of Pesach. Besides YTK, only KosherNearMe names the certifier."],
+ ["Davidovich Bakery Outlet (36 Avenue A)","GoKosher lists OK Kosher (on the cRc list), but that is the only directory source. The outlet is not on KosherNearMe or the KJ list, and OpenStreetMap now shows \"Bueno East Mart\" at 36 Avenue A, so it may have closed. Davidovich bagels are marketed as pas Yisroel pareve. Verify before listing."],
+ ["Effy's Cafe (104 W 96th St)","Certified by IKC (YTK 2026-03-23: \"All locations are kosher under IKC supervision\"; KosherNearMe). IKC is not on the cRc acceptable list. Listed as Questionable rather than excluded because it is a dedicated kosher dairy cafe chain that many kosher diners use. Phone +1 212-280-6200 (KosherNearMe)."],
+ ["Effy's Cafe & Patisserie (552 Columbus Ave)","Certified by IKC (YTK 2026-03-23: \"All locations are kosher under IKC supervision\"; KosherNearMe). IKC is not on the cRc acceptable list. Listed as Questionable rather than excluded because it is a dedicated kosher dairy cafe chain that many kosher diners use. Grab-and-go pastry/coffee branch (2026); phone +1 646-850-0011 (KosherNearMe)."],
+ ["Effy's Cafe on York (1688 York Ave)","Certified by IKC (YTK 2026-03-23: \"All locations are kosher under IKC supervision\"; KosherNearMe). IKC is not on the cRc acceptable list. Listed as Questionable rather than excluded because it is a dedicated kosher dairy cafe chain that many kosher diners use. Phone +1 646-490-6751 (KosherNearMe)."],
+ ["Falafel Crunch (2547 Amsterdam Ave, Washington Heights)","Hechsher: Vaad Harabonim of Riverdale, Orthodox and commonly relied on locally, but NOT on the cRc acceptable list. YTK (2024-02): next to Yeshiva University, same owners as Burgers & Grill, Sun-Thu 9am-10pm. KosherNearMe lists it (pareve), phone (212) 641-0155."],
+ ["Fins & Scales (Chabad Loft, 10 E 8th St)","Kosher omakase run with Chabad. The KJ list (2026-10-13) gives the supervision as \"Chabad of The Bowery\", and YTK (2025-05) says it reopened at the Chabad Loft near NYU. KosherNearMe instead lists IKC. Neither is on the cRc acceptable list, and the sources conflict."],
+ ["Fridges Market (1430 Broadway)","TotallyJewishTravel lists Star-K (on the cRc list) for this grab-and-go kosher salad/sandwich market, but that is the only directory source. It is not on KosherNearMe or the KJ list, and the Star-K site could not be checked. Verify the certificate."],
+ ["Golden King Restaurant (Klein's Restaurant) (58 Mott St)","GoKosher lists Central Rabbinical Congress (Hisachdus, on the cRc list), but that is the only source, and the page itself could not be opened (Cloudflare). There is no trace on KosherNearMe, YTK or the KJ list. Whether it exists and is open is unconfirmed."],
+ ["Gourmandises de France (1437 First Ave)","kosherdelight lists OK Kosher Supervision (on the cRc list). The only other source is a 2018 Hoodline listing (Mon-Thu 7-7, Fri 7-2, Sun 8:30-7, closed Sat). Not on KosherNearMe or the KJ list; the information is stale and the bakery may have closed."],
+ ["Grandma's Pizza (2551 Amsterdam Ave, Washington Heights)","Hechsher: Vaad Harabonim of Riverdale, Orthodox and commonly relied on locally, but NOT on the cRc acceptable list. Listed on KosherNearMe (dairy, phone 212-927-4895). The KJ list (2026-10-13) has 2551 Amsterdam Ave under VHR (entry titled \"Grandma's Cookie Jar\", map link \"Grandma's Pizza\")."],
+ ["Greenwich & Delancey (50 West St, Financial District)","The OU directory still lists \"Greenwich & Delancey - West St.\" (meat, 212-884-1558). However, the restaurant's own site now shows only Greenwich, CT catering (with Manhattan as a delivery area), and no source confirms that the West St dining room is still open."],
+ ["Grill Point Midtown (270 W 39th St)","The KJ list (2026-10-13) lists Grill Point at 270 W 39th St with OU. But the OU directory lists only Grill Point at 1215 Lexington Ave, the chain's own site shows only the Lexington Ave (UES) location, and OpenStreetMap shows Corvo Coffee at 270 W 39th St. It may have closed."],
+ ["Holy Schnitzel - Times Square (245 W 46th St, pickup/delivery only)","KosherNearMe lists Orthodox Union (updated 2026-09-16), but the OU restaurant directory has no Holy Schnitzel entry, and YTK (2026-07-01) said certification details were \"expected to be confirmed as the opening date approaches\". It is a ghost kitchen inside a shared facility (Picnic) where the other kitchens are non-kosher. KosherNearMe is the only source for the OU."],
+ ["Jus by Julie (147 W 35th St, Room 207)","The KJ list (2026-10-13) lists it with supervision \"CRC\", without saying which CRC. The OU certifies Jus by Julie's product line (oukosher.org company page). It is a second-floor room (pickup), not a storefront, and is not on KosherNearMe. Which agency certifies this location is unresolved."],
+ ["Kairi Sushi (delivery)","OU (Orthodox Union, on the cRc list) is named only by koshernear.me. The OU directory has no \"Kairi Sushi\"; at 1129 Lexington Ave it lists only Rothschild TLV (OU, meat). Own site (kairisushi.com) says pick-up/delivery only, Sun–Thu 12–21:30, Fri 12–16, Sat closed, and names no hechsher. Questionable: single directory source, and it looks like a ghost-kitchen brand run from the Rothschild TLV address."],
+ ["Kosher Deluxe (KD46)","Supervision: Rabbi Amram (Avram) Roth, per the CKJ \"Kosher In NYC\" list (updated 2026-10-13) and koshernear.me. He is an Orthodox rabbi but not on the cRc list. Still operating as \"KD46\" at 10 W 46th St; its ordering site gives Mon–Thu, Fri until 14:30, closed Sat and Sun. Phone 212-869-6699 (CKJ). Questionable: certifier not on the cRc list."],
+ ["Lake Como Pizza","Supervised by the Vaad Harabonim of Riverdale (VHR), per the CKJ list (2026-10-13) and koshernear.me. The VHR is an Orthodox vaad the community relies on but is not on the cRc list. 2549 Amsterdam Ave (186th–187th, Washington Heights), 212-740-0110, dairy pizza. Questionable: certifier not on the cRc list."],
+ ["Le Lis Cafe (Arthouse Hotel)","Supervised by Rabbi Marmorstein (\"Tam Kosher\" on koshernear.me; \"R. Marmorstein\" on the CKJ list 2026-10). He is Orthodox (Mehadrin Kashrus) and widely relied on, but not on the cRc list. A pareve/dairy café in the Arthouse Hotel lobby, 2178 Broadway / 222 W 77th St, 212-362-1100. Questionable: certifier not on the cRc list, and it is a hotel venue."],
+ ["LOX (The Jewish Museum)","OU, Cholov Yisroel and Pas Yisroel per Yeah That's Kosher (2024-11-04, more than 12 months old), and koshernear.me lists \"Lox Cafe, 1109 5th Ave, OU\". The OU directory lists only the Museum of Jewish Heritage LOX, not this branch. Hours follow the museum (closed Tue/Wed, and Fri/Sat). Questionable: listed agency, but stale/directory-only and missing from the OU directory."],
+ ["Malka","Supervised by Rabbi Mehlman (National Kosher Supervision), per the CKJ list (2026-10) and koshernear.me. NKS is an Orthodox supervision but is not on the cRc list. Eyal Shani's kosher meat restaurant, 161 W 72nd St, 929-388-4999; own site lists the Upper West Side location. Questionable: certifier not on the cRc list."],
+ ["Mellow Yellow","Supervised by Rav Asher Schechter (Cong. Ohr Moshe), per Jewish Link and the CKJ list (2026-10). He is Orthodox but not on the cRc list. Per Jewish Link, the owners closed on Shabbat and Yom Tov when they took supervision; Sun–Fri 8–17. 1729 1st Ave (89th–90th), 212-722-7220, Israeli breakfast/dairy. Questionable: certifier not on the cRc list."],
+ ["Michaeli Bakery (Lower East Side)","The certifier given by the discovery lead (totallyjewishtravel) is the IKC (International Kosher Council), which is not on the cRc list. The own site has a \"Kosher Certifications\" page, but its certificate text is not machine-readable. Own site: 115A Division St, Mon–Thu 7–18, Fri 7–17, Sat closed, Sun 7–18. Questionable: certifier not on the cRc list; closed on Shabbat."],
+ ["Michaeli Bakery (Upper East Side)","The certifier given by the discovery lead (totallyjewishtravel) is the IKC, which is not on the cRc list. Own site: 401 E 90th St, 646-454-1466, Mon–Thu 7–18, Fri 7–17, Sat closed, Sun 8–18. Questionable: certifier not on the cRc list."],
+ ["Mocha Burger (UES, 1603 2nd Ave)","OU claimed by an older directory lead only. The own site lists just Union Square and Times Square, the OU directory has no UES branch, and The Infatuation mentions only a \"Mocha Express\" near 2nd Ave & 83rd. Possibly closed. Questionable: listed agency, but the branch is unverified."],
+ ["Mocha Burger (SoHo, 496 LaGuardia Pl)","The own site's footer links an OU certificate for \"Soho\", and its page title gives 496 LaGuardia Pl. But its location list shows only Union Square and Times Square, and the OU directory has no LaGuardia Pl entry. Directory hours conflict. Questionable: listed agency, but branch status unclear."],
+ ["Modern Bread & Bagel (Chelsea)","IKC per koshernear.me (139 W 14th St, (646) 437-7157, pareve). Questionable: the IKC (International Kosher Council) is not on the cRc list. The chain is closed on Saturdays (UWS open Sun–Fri per a review listing; the Englewood branch \"closed Saturdays\" per Jewish Link)."],
+ ["Modern Bread & Bagel (Midtown East)","IKC per koshernear.me (630 Lexington Ave, (646) 583-3390, dairy). Questionable: the IKC (International Kosher Council) is not on the cRc list. The chain is closed on Saturdays (UWS open Sun–Fri per a review listing; the Englewood branch \"closed Saturdays\" per Jewish Link)."],
+ ["Modern Bread & Bagel (UES)","IKC per koshernear.me (1427 3rd Ave, (646) 443-6658, dairy). Questionable: the IKC (International Kosher Council) is not on the cRc list. The chain is closed on Saturdays (UWS open Sun–Fri per a review listing; the Englewood branch \"closed Saturdays\" per Jewish Link)."],
+ ["Modern Bread & Bagel (UWS)","IKC per koshernear.me (472 Columbus Ave, (646) 775-2985). Questionable: the IKC (International Kosher Council) is not on the cRc list. The chain is closed on Saturdays (UWS open Sun–Fri per a review listing; the Englewood branch \"closed Saturdays\" per Jewish Link)."],
+ ["Modern Bread & Bagel (Penn Station)","Penn Station kiosk reported by Yeah That's Kosher (2024-09), presumably IKC like the rest of the chain. Not re-verified as open: not on koshernear.me, and the search budget ran out. Questionable."],
+ ["Morelia Paletas (UES)","Certified by National Kosher Supervision (NKS, Rabbi Mehlman), not Cholov Yisroel, per Yeah That's Kosher (2025-06) and koshernear.me (1435 1st Ave, 646-678-5932). NKS is Orthodox but not on the cRc list. Hours vary by season, and Shabbat closure is not stated. Questionable."],
+ ["Moshe's Falafel (Midtown cart, 46th St & 6th Ave)","The CKJ list (2026-10) gives Moshe's Falafel Truck, 94 W 46th St (5th–6th Aves), 917-451-6933, supervised by R. Pinchas Horowitz; koshernear.me says \"Dover tov\". Neither is on the cRc list. A long-running kosher falafel cart. Questionable."],
+ ["Moshe's Falafel (UWS, 142 W 83rd St)","koshernear.me gives \"Dover tov\" supervision (142 W 83rd St, +1 212-871-0182, vegan/pareve). Not on the cRc list, and only directory-sourced. The own site is behind a Cloudflare check. Questionable."],
+ ["Moshe's Falafel Food Truck (7th Ave & 39th St)","VKM (Vaad Kashrus Mehadrin) per the totallyjewishtravel lead only; that page loads its data by script and returned 403 to direct requests. Not on the CKJ list or koshernear.me at that corner, and VKM is not on the cRc list. Possibly the same operator as the 46th St cart. Questionable: unverified single source."],
+ ["Picnic by the Black Parrot","\"Kosher Mehadrin certified by Rabbi Avroham Marmorstein\", per Yeah That's Kosher (2026-08-26); koshernear.me says \"Mehadrin\". He is Orthodox and widely relied on, but not on the cRc list. 161 W 106th St, Mon–Thu 17:00–22:30, walk-in only, meat. Questionable: certifier not on the cRc list."],
+ ["Pitopia","A Mediterranean counter at 43 E 34th St (Uber Eats \"Pitopia Midtown East\"), inside the complex the OU directory lists as \"Eden Wok-34 St.\". OU is claimed by the totallyjewishtravel lead, but Pitopia is not named in the OU directory, on the CKJ list, or on koshernear.me. Questionable: listed agency, but this counter is unconfirmed."],
+ ["Plant Junkie","Kosher certified by the International Kosher Council (IKC), per Yeah That's Kosher (2024-11, more than 12 months old). The IKC is not on the cRc list. 226 Front St (South Street Seaport); open Tue–Thu 12–20 and Friday. Questionable: certifier not on the cRc list, stale source, open status not re-verified."],
+ ["Polanco Social","\"Certified Glatt Kosher under National Kosher Supervision (NKS)\", per Yeah That's Kosher (2025-11); \"R. Mehlman\" on the CKJ list (2026-10). NKS is Orthodox but not on the cRc list. 474 Columbus Ave (82nd–83rd), 646-480-0585, Mexican, meat. Questionable: certifier not on the cRc list."],
+ ["Robusta Espresso Bar","The own site says \"certified Kosher and carry Cholov Yisroel… contact Rabbi Asher Schechter\"; the CKJ list (2026-10) gives 44 W 47th St, 212-302-0242, R. Asher Schechter. He is Orthodox but not on the cRc list. Pareve/dairy espresso bar in the Diamond District. Questionable: certifier not on the cRc list."],
+ ["Saba's Pizza (UWS, 403 Amsterdam Ave)","Supervised by Rabbi Mehlman / National Kosher Supervision (NKS), per the CKJ list (2026-10; 403 Amsterdam, 79th–80th, 212-787-1118) and koshernear.me. NKS is Orthodox but not on the cRc list. Dairy pizza (soy pepperoni). Questionable."],
+ ["Saba's Pizza (UES, 1217 Lexington Ave)","Supervised by Rabbi Mehlman / NKS, per the CKJ list (2026-10; 1217 Lexington, 82nd–83rd, 212-987-9130) and koshernear.me. NKS is not on the cRc list. Questionable."],
+ ["Sen Sakana","Glatt kosher Nikkei restaurant at 28 W 44th St. Supervision is \"Dover Tov\" / R. Berach Steinfeld (KosherNearMe; CKJ list updated 2026-10-13). This is not on the cRc list, but it is an Orthodox rabbinic supervision, and the own site shows the restaurant closed Fri-Sat (Mon-Thu lunch/dinner, Sun 17-22). Likely kosher, so Questionable."],
+ ["Moishe's Bake Shop","Traditional kosher bakery at 504 Grand St; the Grand St shop stayed open after the 2nd Ave shop closed, and a review says it is closed Saturdays. Sources conflict on the hechsher. CKJ (2026-10) says \"CRC\" without saying which CRC, while TotallyJewishTravel says Mehadrin Kashrus - Rabbi Marmorstein, which is not on the cRc list. Questionable until the certificate is checked."],
+ ["Village Crown (216 E 49th St, 2nd Fl)","CKJ (updated 2026-10-13) lists Village Crown at 216 E 49th St, 2nd Fl as OU, and a 2020 list says catering and delivery only (212-207-3888). The OU Manhattan directory has no \"Village Crown\". It does list Esprit Events (OU, dairy) at 216 E 49th St with the same phone, so the OU entry is under the caterer name. Questionable because it is catering/delivery only and the brand is not named in the OU directory."],
+ ["Snooker NYC (Cassa Hotel)","Pool hall with a dairy kitchen at 511 9th Ave (Cassa Hotel). Only GoKosher lists it as OK (closed Fri; Sat from 19:30); it is not in CKJ (2026-10) or KosherNearMe. Tempura NYC, an OK-certified restaurant in the same building, closed in April 2026 after losing its lease, so current status is unclear. Single source and a hotel venue, so Questionable."],
+ ["SoBol Upper West Side","Açaí cafe at 550 Columbus Ave under Congregation Ohr Moshe Hillcrest / Rabbi Asher Schechter (YTK 2026-02; CKJ 2026-10; KosherNearMe). This is an Orthodox rabbi's supervision but not on the cRc list, so Questionable."],
+ ["Something Green (Flatiron)","At 41 W 23rd St, NKS / Rabbi Mehlman (not on the cRc list) covers only beverages and pre-made grab-and-go items; made-to-order food is NOT certified. YTK (2026-05) says the owners are shomer Shabbat and it is closed Saturdays. Partial certification, so Questionable."],
+ ["Sweet Dreams Cafe and Bakery","Dairy/pareve cafe-bakery at 100 Orchard St, inside the Blue Moon Hotel, open Sun-Thu 11-19. GoKosher and CKJ (2026-10) list Rabbi Fishelis, who is not on the cRc list, so Questionable."],
+ ["Talia's Steakhouse & Bar","Long-running UWS glatt kosher steakhouse at 668B Amsterdam Ave; YTK (2026-03) covers its Seders and Chol Hamoed meals. Supervision is Mehadrin Kashrus / Rabbi Avrohom Marmorstein (CKJ 2026-10; KosherNearMe), which is not on the cRc list, so Questionable."],
+ ["The Malawach Kitchen - Ghost Kitchen","Claimed OU ghost kitchen at 245 W 46th St; the only source is TotallyJewishTravel. KosherNearMe lists Holy Schnitzel - Times Square (OU) at the same address (2026-09), so it may be a delivery brand out of that kitchen. The brand could not be confirmed in any OU, CKJ or KosherNearMe listing, so single-source and Questionable."],
+ ["Tomer's Gourmet Market","Prepared-food market at 1201 Lexington Ave under Rabbi Mehlman (KosherNearMe; CKJ 2026-10). Mehlman/NKS is not on the cRc list and Shabbat hours were not verified, so Questionable."],
+ ["West Side Wok & Konata Sushi Bar (668B Amsterdam Ave (W 92nd–93rd St))","Questionable: the certifier is unclear. CKJ lists West Side Wok at 668B Amsterdam Ave as OK, but a July 2026 press release says West Side Wok & Konata 'moved all their operations into Talia's kitchen' (668 Amsterdam). Talia's and Shawarma Shabazi at 668B are under Rabbi Marmorstein per koshernear.me and a kosher directory, and Rabbi Marmorstein is not on the cRc list. The OK listing may date from its old 691 Amsterdam location. GoKosher returned 403, and the OK's own directory was not checked. Confirm the certificate on site."],
+ ["William Greenberg Desserts (UES)","Bakery at 1100 Madison Ave under R. Mehlman (KosherNearMe; CKJ 2026-10). Mehlman/NKS is not on the cRc list and Shabbat hours were not verified, so Questionable."],
+ ["William Greenberg Desserts (UWS)","Bakery at 285 Amsterdam Ave under NKS / R. Mehlman (KosherNearMe; CKJ 2026-10). Not on the cRc list and Shabbat hours were not verified, so Questionable."],
+ ["Sushi Skooba (100 W 83rd St (at Columbus Ave))","Questionable: only one source names it. CKJ (2026-10-13) lists Sushi Skooba at 100 W 83rd St as OU, but the OU listing for 100 W 83rd St does not name Skooba (it names Carlos & Gabby's, Graze, Mexi Kosher and Rosa's). koshernear.me's 100 W 83rd entry also omits Skooba. It is likely covered by the OU kitchen, but this is a single directory source."],
+ ["Bear's Boomin' Bakery","Bakery at 715 Columbus Ave (94th-95th) under R. Mehlman per CKJ (updated 2026-10-13). Mehlman/NKS is not on the cRc list and this is the only source, so Questionable."],
+ ["Haya Braun Fine Baked Goods","Bakery at 124 W 95th St (at Ohab Zedek) under \"NYK\" per CKJ (updated 2026-10-13). NYK is not on the cRc list and this is the only source, so Questionable."],
+ ["Sixteen Handles (UWS & UES)","Frozen-yogurt shops at 325 Amsterdam Ave and 1569 2nd Ave under R. Mehlman per CKJ (2026-10). Mehlman is not on the cRc list, and Saturday hours could not be verified; this is a chain store, and if it is open on Shabbat it must be excluded. Questionable."],
+ ["SoBol (UWS)","SoBol (550 Columbus Ave): supervised by Rabbi Asher Schechter, per CKJ Kosher in NYC (updated 2026-10-13) and Kosher Near Me (2026-09). Rabbi Asher Schechter is not on the cRc Acceptable Kashrus Agencies list. He is a local Orthodox rabbinic supervisor the community commonly relies on, so this goes to Questionable."],
+ ["Westside Wok","Westside Wok (668B Amsterdam Ave): CKJ Kosher in NYC (2026-10-13) lists it as OK, but it is not in OK's own Manhattan restaurant guide. A press release dated 2026-07-31 says West Side Wok & Konata Sushi Bar moved all their operations into the Talia's Steakhouse kitchen. CKJ lists Talia's under R. Marmorstein, who is not on the cRc list. Which agency certifies the shared kitchen is unclear, so this goes to Questionable."],
+ ["William Greenberg Desserts (UWS)","William Greenberg Desserts (285 Amsterdam Ave), a bakery: supervised by R. Aaron Mehlman / National Kosher Supervision (NKS), per CKJ (2026-10-13) and Kosher Near Me (2026-09). NKS is not on the cRc list. It is an Orthodox supervision widely relied on in Manhattan, so this goes to Questionable."],
+ ["William Greenberg Desserts (UES)","William Greenberg Desserts (1100 Madison Ave), a bakery: supervised by R. Mehlman, per CKJ (2026-10-13) and Kosher Near Me (2026-09). NKS / R. Mehlman is not on the cRc list, so this goes to Questionable."],
+ ["Catle - Smoked Meats & Grilled Burgers","Catle (245 W 46th St) is listed as OU only on CKJ Kosher in NYC (2026-10-13). It is not in the OU website's restaurant directory, and no other trace of the name was found. Kosher Near Me (2026-09-16) lists the same address as 'Holy Schnitzel - Times Square' (OU). With a single source and an unclear identity, this goes to Questionable."],
+ ["Miznon Kosher @ Times Square","Miznon Kosher (1410 Broadway): supervised by R. Mehlman, 'this location only' (CKJ 2026-10-13; Kosher Near Me 2026-09, 97% (4)). R. Mehlman / NKS is not on the cRc list, so this goes to Questionable."],
+ ["Moshe's Falafel Truck","Moshe's Falafel truck (94 W 46th St, between 5th and 6th Aves). CKJ (2026-10-13) lists R. Pinchas Horowitz; Kosher Near Me (2026-09) lists 'Dover tov'. Neither is on the cRc list (the 'Rabbi Nussen Naftali Horowitz' on the list is a different rav). It is a long-running kosher cart, so this goes to Questionable."],
+ ["Cold Stone Creamery (42nd)","Cold Stone Creamery Times Square (350 W 42nd St): supervised by Rabbi Asher Schechter (CKJ 2026-10-13; Kosher Near Me 2026-09). He is not on the cRc list, so this goes to Questionable. Chain branches differ; this applies to this branch only."],
+ ["NYU's Kosher Eatery (Weinstein Hall)","NYU Kosher Eatery, Weinstein Hall, 5-11 University Place: Kof-K per CKJ Kosher in NYC (2026-10-13). Kof-K is on the cRc list, but CKJ is the only source found (the Kof-K directory returned 403 and the NYU dining page was empty). Single source, and a university dining hall, so this goes to Questionable."],
+ ["Sage Kitchen","CKJ (2026-10-13) lists Sage Kitchen at 353 Bowery under Chabad of Bowery, which is not on the cRc list. Its Bowery restaurant reportedly closed in 2020; the catering business continued, and it had earlier run pop-ups at Chabad House Bowery. Status and format are unclear, so this goes to Questionable."],
+ ["Moishe's Bakery","Moishe's Bakery (504 Grand St): CKJ (2026-10-13) lists 'CRC', which its key defines as Central Rabbinical Congress. That is Hisachdus Harabonim (Beth Din Hameyuchud L'inyonei Kashrus), which is on the cRc list. CKJ is the only source found, and it is a bakery with unknown seating, so this goes to Questionable."],
+ ["Sweet Dreams Cafe (Blue Moon Hotel)","Sweet Dreams Café (100 Orchard St, in the Blue Moon Hotel): hashgacha by Rabbi Fishelis, Cholov Yisroel and Bishul Yisroel, vegetarian (Jewish Press Jan 2024; CKJ 2026-10-13). Rabbi Fishelis is not on the cRc list, and it is a hotel café, so this goes to Questionable."],
+ ["Cafe Nana (Columbia)","Cafe Nana, 606 W 115th St (Columbia), dairy: R' Aaron D. Mehlman / NKS, per an undated user-made map only. NKS is not on the cRc list, the only source is undated, and its current status is unverified, so this goes to Questionable."],
+ ["Grandma's Cookie Jar","Grandma's (2551 Amsterdam Ave, 186th-187th St): Vaad Harabonim of Riverdale, per CKJ (2026-10-13, as 'Grandma's Cookie Jar') and Kosher Near Me (2026-09, as 'Grandma's Pizza'). VHR is not on the cRc list. It is an Orthodox vaad commonly relied on in Washington Heights, so this goes to Questionable."],
+ ["Dunkin' (Audubon Ave) - entire store","Dunkin' at 398 Audubon Ave (corner of 185th St): the entire store is under R. Mehlman (CKJ 2026-10-13; Kosher Near Me 2026-09). He is not on the cRc list, so this goes to Questionable."],
+];
+
+DATA.manhattan.EXCL = [
+ ["Bravo Pizza","Not in the OK guide and not one of the \"(K)\" kosher stores on Bravo's own store locator (only 378 5th Ave in Manhattan); its Slice menu has meat-and-cheese items. Treat as a non-kosher Bravo branch."],
+ ["Bravo Pizza","Shown in the Bravo ordering dropdown but not marked \"(K)\" on the store locator and not in the OK guide; no hechsher found for this branch."],
+ ["Bagel Boss Manhattan","Certifier Rabbi Asher Schechter / Cong. Ohr Moshe is not on the cRc list, and the certification letter in the NY State registration says the store \"is owned and operated (under our supervision) by Non-Jews on Shabbos & Yom Tov\", so it is open on Shabbat."],
+ ["KD 46","KD 46 / Kosher Deluxe at 10 W 46th St: certifier is Dover Tov (NY State registration) / Rabbi Avram Roth (koshernear.me), neither on the cRc list."],
+ ["Hummus Kitchen","Open on Shabbat: own site lists Upper East hours \"Mon – Sun: 11AM – 10:30PM\". Hechsher IKC (koshernear.me) — International Kosher Council (Rabbi Zev Schwarcz) is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json)."],
+ ["Hummus Kitchen","Open on Shabbat: own site lists Hell's Kitchen \"Fri – Sat: 11:30am- 11pm\" / \"Mon – Sun: 11AM – 11PM\". IKC per NY State registry — not on the cRc list."],
+ ["Fortuna","Hechsher \"Rabbi Zev Schwarz Int'l Kosher\" (koshernear.me; NY State registry: IKC) — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); ordering page lists \"Monday-Sunday: 10AM-9PM\" (open on Shabbat)."],
+ ["Anixi","IKC (koshernear.me, NY State registry) — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); listings show Saturday 11:30am–10pm/11:30pm (open on Shabbat)."],
+ ["Willow Vegan Bistro","IKC (koshernear.me 2026-09; NY State registry) — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); listings show Saturday 11:30am–10/10:30pm (open on Shabbat)."],
+ ["Wild Ginger / Luanne's Wild Ginger","IKC (Rabbi Zev Schwarcz) per NY State registry — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); Time Out lists \"Fri, Sat noon–11:30pm\" (open on Shabbat)."],
+ ["2nd Avenue Deli","Certified by the International Kosher Council (Wikipedia; Goldbelly \"Certified Kosher by the International Kosher Council\") — not on the cRc list; open on Shabbat (Wikipedia notes most Orthodox Jews will not eat there for that reason)."],
+ ["2nd Avenue Deli","Same as the 33rd St branch: IKC (not on the cRc list) and open on Shabbat."],
+ ["Juice Press","IKC on every Manhattan branch (koshernear.me, NY State registry) — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); third-party listings show weekend hours (e.g. Sat–Sun 8am–8pm), i.e. open on Shabbat."],
+ ["Zaro's Family Bakery","Outlets registered under the International Kosher Council (NY State registry) — not on the cRc list (OK appears only as a product-brand listing). Grand Central counters open Saturday (Graybar Passage Mon–Sat 5am–12am; Shuttle Passage Sat–Sun)."],
+ ["Pastrami Queen","NY State registry: \"Jonah Phillips - Self Certification\"; Goldbelly listings call it \"self-certified Kosher\" — no agency, not on the cRc list."],
+ ["Pastrami Queen","Self-certified (NY State registry; Goldbelly) — no agency, not on the cRc list."],
+ ["B&H Dairy","Rabbi Andre Malek (koshernear.me; NY State registry) — individual supervisor not on the cRc list and not a supervision the Orthodox community commonly relies on."],
+ ["By the Way Bakery","Own site: \"OK Kosher does not supervise our retail locations\" (OK covers only the Pleasantville commissary); shop open every day 8am–6pm including Saturday."],
+ ["By the Way Bakery","Same: OK does not supervise the retail shops (own site); open daily incl. Saturday."],
+ ["Bagel 786","Tablet K (Rabbi David Saffra) per NY State registry — not on the cRc list and not an Orthodox supervision commonly relied on."],
+ ["Eileen's Special Cheesecake","Tablet K (Rabbi David Saffra) per NY State registry — not on the cRc list and not commonly relied on."],
+ ["Nish Nush","Rabbi Israel M. Steinberg (NY State registry) — not on the cRc list and not commonly relied on; own site does not mention kosher certification. (FiDi branch closed end of September per own site.)"],
+ ["Buddha Bodai","Cup-K / Rabbi Israel M. Steinberg (koshernear.me \"Buddha Bodai One\"; NY State registry) — not on the cRc list and not commonly relied on."],
+ ["Insomnia Cookies","Rabbi Mehlman / National Kosher Supervision (koshernear.me; NY State registry) — not on the cRc list; chain advertises \"Warm Cookies Delivered Until 3 AM Daily\" (open on Shabbat)."],
+ ["Al-Andalus","Lighthouse Kosher (koshernear.me) — not on the cRc list and not an Orthodox supervision commonly relied on."],
+ ["Annapurna Bhavan","Rabbi Andre Malik (koshernear.me) — not on the cRc list and not commonly relied on."],
+ ["Avant Garden","Lighthouse Kosher (koshernear.me; Resy note) — not on the cRc list and not an Orthodox supervision commonly relied on."],
+ ["Beyond Sushi","IKC (koshernear.me) — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); own site hours include \"Saturday: 11:30am–10:30pm\" (open on Shabbat)."],
+ ["Bodhi Kosher Vegan","Cup-K (koshernear.me) — not on the cRc list and not commonly relied on."],
+ ["Buba Bureka","IKC (koshernear.me; YTK 2026-02) — IKC is not on the cRc Acceptable Kashrus Agencies list (crc_acceptable_2026-10-15.json); own site hours \"Saturday and Sunday: 9:00 AM to 4:00 PM\" (open on Shabbat)."],
+ ["Buttercup Bake Shop","Certified by \"Rabbi Zev Schwarz Int'l Kosher\" (KosherNearMe), which is not on the cRc acceptable list; bakery-chain outlet, not on the KJ Manhattan kosher list."],
+ ["Cafeteria at the Jewish Theological Seminary","Supervision is listed as Rabbi Joel Roth (KosherNearMe), a faculty supervision at JTS (Conservative seminary). It is not an Orthodox agency and not on the cRc acceptable list."],
+ ["Candle Cafe","Certified by IKC (International Kosher Council) per GoKosher. IKC is not on the cRc acceptable list (the cRc list's \"IKC Italy Kosher Cert\" is a different, Italian agency). Vegan restaurant; YTK covered its 2023 reopening as kosher."],
+ ["Caravan of Dreams","Supervision is listed only as \"RAM\" (KosherNearMe), which does not match any agency on the cRc acceptable list. Vegan/vegetarian restaurant."],
+ ["Carvel","KosherNearMe lists Kof-K, but Carvel's own store page for 165 W 48th St gives hours of 10am-4am on Friday and Saturday. The store is open on Shabbat, so it cannot qualify."],
+ ["Chennai Garden","The only claim is \"OKS\" (Time Out), which does not match any agency on the cRc acceptable list. Not on KosherNearMe or the KJ Manhattan list."],
+ ["CHLOE","Certified by IKC (International Kosher Council) per YTK (2024-07) and KosherNearMe. IKC is not on the cRc acceptable list. Vegan restaurant."],
+ ["Cold Stone Creamery Times Square","Supervision: Rabbi Asher Schechter (KosherNearMe), who is not on the cRc acceptable list. Chain ice-cream outlet."],
+ ["Coletta","Certified by IKC (KosherNearMe), which is not on the cRc acceptable list. Vegan Italian restaurant."],
+ ["Double Zero","Certified by IKC (KosherNearMe), which is not on the cRc acceptable list. Vegan pizza restaurant."],
+ ["Dough Doughnuts","YTK (2025-12-23): \"All Dough Doughnuts locations in New York are kosher certified by the International Kosher Council (IKC)\". IKC is not on the cRc acceptable list. This entry covers all Manhattan branches."],
+ ["Doughnut Plant","Certified by IKC (KosherNearMe; GoKosher), which is not on the cRc acceptable list."],
+ ["Dunkin'","Lost its kosher certification. YTK (2026-08-09): no longer under Rabbi Mehlman / National Kosher Supervision; \"It is no longer kosher.\""],
+ ["Dunkin' Donuts","The KJ list (2026-10-13) gives Rabbi Mehlman (National Kosher Supervision) for 535 Amsterdam (entire store), 398 Audubon (entire store), and 687 Amsterdam and 916 3rd Ave (baked goods only). NKS is not on the cRc list. KosherNearMe's older \"Kof-K\" tag for 535 Amsterdam conflicts with the current KJ list. Chain coffee shops."],
+ ["Dunkin'","TotallyJewishTravel claims Vaad Harabonim of Queens, but the VHQ's own certified-establishments list (checked 2026-10-20) has no Manhattan Dunkin, only Flushing and Great Neck. It is not on KosherNearMe or the KJ list either, so treat it as not certified."],
+ ["Dunkin' / Baskin-Robbins","National Kosher Supervision (GoKosher), which is not on the cRc acceptable list. Not on KosherNearMe."],
+ ["Ezra's Falafel","Supervision is listed as Rabbi Andre Malek (KosherNearMe), who is not on the cRc acceptable list. No other source was found for the truck or its current spot."],
+ ["Gotta Getta Bagel","Rabbi Asher Schechter withdrew and then reinstated his hechsher in March 2025 (YTK). Rabbi Schechter is not on the cRc acceptable list."],
+ ["Green Mandala","National Kosher Supervision / Rabbi Mehlman, with \"limited supervision (see certificate at store)\" (KJ list 2026-10-13; KosherNearMe). NKS is not on the cRc acceptable list. Vegan restaurant."],
+ ["Holey Cream","Rabbi Mehlman (National Kosher Supervision) per the KJ list (2026-10-13) and KosherNearMe. NKS is not on the cRc acceptable list. Ice-cream/doughnut shop."],
+ ["Hummus Kitchen Hell's Kitchen","International Kosher Council (IKC) per TotallyJewishTravel. IKC is not on the cRc acceptable list. Not on KosherNearMe; current status unverified."],
+ ["Hummus Kitchen Kips Bay","International Kosher Council (IKC) per TotallyJewishTravel. IKC is not on the cRc acceptable list. Not on KosherNearMe; current status unverified."],
+ ["Hummus Place","United Kosher Supervision (TotallyJewishTravel; mapcustomizer), which is not on the cRc acceptable list. Neither branch appears on KosherNearMe; status unverified."],
+ ["Insomnia Cookies","National Kosher Supervision, Rabbi Aaron D. Mehlman (YTK 2025-11; KJ list \"UWS & UES locations only\"). NKS is not on the cRc acceptable list. Chain cookie shop."],
+ ["Jajaja Mexicana","Certified by IKC (KosherNearMe), which is not on the cRc acceptable list. Vegan Mexican chain."],
+ ["Kossar's Bagels & Bialys","No current kosher certification. Wikipedia says the bakery stopped operating as kosher after the 2013 sale, and The Lo-Down reported that the rabbi declined to restore its certification. No 2026 source shows a hechsher."],
+ ["Krispy Kreme","KOA (Kosher Overseers Associates) is not on the cRc list. The Times Square flagship (1601 Broadway) was announced as open 24/7, so it is open on Shabbat. Stores per CKJ: 1276 Lexington Ave, 2 Penn Plaza (Amtrak level) and 1601 Broadway, all KOA."],
+ ["Ladybird","Supervised by Lighthouse Kosher (koshernear.me), which is not on the cRc list and is not a supervision the Orthodox community commonly relies on."],
+ ["Le Basque","Certified by the IKC (not on the cRc list), and open Friday night and Saturday (11:30–23:30) per Yeah That's Kosher (2024-11). A kosher-vegan French/Spanish restaurant at 15 Union Square W."],
+ ["Magnolia Bakery","Certified by the IKC (koshernear.me), which is not on the cRc list. A national bakery chain, 200 Columbus Ave."],
+ ["Nargila Grill","The OK claim comes only from a kosherdelight page last updated 2019. OK Kosher's current restaurant list has no Nargila entry. The address now operates as \"Sip & Sizzle\", which calls itself kosher but names no certifier."],
+ ["OMG Shawarma","IKC (Rabbi Zev Schwarcz), which is not on the cRc list, and per Yeah That's Kosher (2025-04) \"the restaurant is open on Saturdays\" (Sat 11–22). 131 7th Ave South."],
+ ["Orwashers Bakery","Tablet K Supervision is the only certifier named (kosherdelight, last updated 2019). It is not on the cRc list, and Orwashers' own site does not mention kosher."],
+ ["P.S. Kitchen","Own site: \"Open 7 Days a week and on all Holidays\" (open on Shabbat). The certifier given by the lead (IKC) is not on the cRc list. Vegan, 246 W 48th St."],
+ ["Peacefood Cafe","Supervised by Rabbi Andre Malek (koshernear.me), who is not on the cRc list. Own site gives Saturday hours 9:30–22:00, so it is open on Shabbat. 460 Amsterdam Ave (the own site lists only this address; the 41 E 11th St listing is old)."],
+ ["Playa Bowls","Supervised by Rabbi Mehlman / NKS, which is not on the cRc list, and only \"limited supervision (see certificate at store for details)\" per the CKJ list (2026-10). The chain's branches include 100 Pearl St, 108 MacDougal St, 493 6th Ave, 299 7th Ave, 230 Park Ave, 550 W 54th St, 1471 2nd Ave and 2327 Broadway."],
+ ["PLNT Burger","Certified by the IKC (koshernear.me), which is not on the cRc list. A vegan fast-food chain."],
+ ["Pongal","Cup-K (Rabbi Israel Steinberg) is not on the cRc list, and the own site shows it open on Saturdays (Fri–Sat 12:00–22:00). Vegetarian South Indian, 103 Lexington Ave."],
+ ["PopUp Bagels","Partial supervision: NKS (Rabbi Aaron Mehlman) covers only the bagels, plain cream cheese and OU lox, and flavored cream cheeses and other toppings sold in the store are not kosher (Yeah That's Kosher list, updated 2025-12). NKS is not on the cRc list."],
+ ["Sen Saigon","Certified by Lighthouse Kosher, which is not on the cRc list. Also open Saturday (Wed-Sat 11:30-21:00 per YTK, Jan 2025); places open on Shabbat never qualify."],
+ ["Sentir","Vegan Mexican restaurant (City Roots Hospitality) at 37 W 19th St. KosherNearMe lists IKC, which is not on the cRc list, and the own site shows it open Saturday 11:30-22:30. Open on Shabbat, so it does not qualify."],
+ ["Yonah Schimmel's Knish Bakery","Historic knish bakery at 137 E Houston St. Its \"Kosher Cup\" (Cup-K) certification is not on the cRc list, and the own site says it is open 7 days a week, 11-5, so it is open on Shabbat."],
+ ["Shosh","Plant-based Israeli restaurant at 41 Greenwich Ave. KosherNearMe lists IKC, which is not on the cRc list, and HappyCow lists it open Mon-Sun 17:00-23:00, so it is open on Shabbat."],
+ ["Soda Club","Vegan Italian-American restaurant (Overthrow Hospitality) at 95 Avenue A. Lighthouse Kosher is not on the cRc list, and Michelin lists it open Saturday 17:00-01:00, so it is open on Shabbat."],
+ ["Spicy Moon Bowery","Vegan Szechuan restaurant at 265 Bowery, certified by Lighthouse Kosher (Rabbi Barry Dolinger), which is not on the cRc list. YTK says each location operates daily, so it is open on Shabbat."],
+ ["Spicy Moon Chelsea","Vegan Szechuan restaurant at 232 8th Ave, certified by Lighthouse Kosher (Rabbi Barry Dolinger), which is not on the cRc list. YTK says each location operates daily, so it is open on Shabbat."],
+ ["Spicy Moon East Village","Vegan Szechuan restaurant at 328 E 6th St, certified by Lighthouse Kosher (Rabbi Barry Dolinger), which is not on the cRc list. YTK says each location operates daily, so it is open on Shabbat."],
+ ["Spicy Moon West Village","Vegan Szechuan restaurant at 68 W 3rd St, certified by Lighthouse Kosher (Rabbi Barry Dolinger), which is not on the cRc list. YTK says each location operates daily, so it is open on Shabbat."],
+ ["Taboonia","Vegetarian Druze-Israeli spot at 832 6th Ave, certified by IKC / Rabbi Zev Schwarcz, which is not on the cRc list. YTK says it is \"open daily until 10 PM\", so it is open on Shabbat."],
+ ["Tal Bagels","Popular East Side bagel chain (1228 & 1324 Lexington, 333 E 86th, 357 1st Ave). No kosher certification found, and it is not in KosherNearMe or CKJ (2026-10); it appeared only in the DoorDash kosher category."],
+ ["The Chick Shop","Israeli street-food counter at 805 3rd Ave, listed as IKC (International Kosher Council), which is not on the cRc list. Current status is unverified: the thechickshop.com domain now serves gambling spam."],
+ ["The Pickle Guys","Famous LES pickle shop at 357 Grand St. It is a retail pickle store rather than a restaurant, and it is supervised by Rabbi Shmuel Fishelis (KosherNearMe; CKJ 2026-10), who is not on the cRc list."],
+ ["Third Kingdom","Mushroom restaurant from Overthrow Hospitality; Time Out puts it on East 7th St, KosherNearMe at 95 Avenue A. Lighthouse Kosher is not on the cRc list. Its sister venue Soda Club at the same 95 Ave A address is open Saturday, and no Shabbat closure is shown."],
+ ["Tiffin Wallah","South Indian vegetarian restaurant at 127 E 28th St. The claimed \"OKS\" is not the OK and is not on the cRc list. No current certificate was found (the newest kosher mention is a 2020 blog), and it is not in KosherNearMe or CKJ (2026-10)."],
+ ["UN Plaza Grill","Dropped its OU certification; its last kosher meal was April 30, 2026, and it now operates as non-kosher (YTK 2026-05)."],
+ ["Vegan Grill East Village","At 58 St Marks Pl. Listed as IKC, which is not on the cRc list, and the official locations page shows it open every day including Saturday."],
+ ["Vegan Grill Upper East Side","At 1726 2nd Ave. Listed as IKC, which is not on the cRc list, and Spinach Guide shows Saturday 9:00-24:00, so it is open on Shabbat."],
+ ["Wild Ginger","Pan-Asian vegan restaurant at 380 Broome St. Certified by Rabbi Zev Schwarz / International Kosher Council, which is not on the cRc list, and open Saturday per Time Out and other listings."],
+ ["Willow","Vegan bistro (City Roots) at 199 8th Ave. Listed as IKC, which is not on the cRc list, and open Saturday per Atmosfy and Spinach Guide hours."],
+ ["Zucker's Bagels","Popular bagel chain. Goldbelly says its bagels carry \"Tablet K\", which is not on the cRc list. The shops are not certified kosher restaurants (not in KosherNearMe or CKJ) and are open Saturdays."],
+ ["Pop Up Bagels","Pop Up Bagels (1457 3rd Ave): CKJ (2026-10-13) says only the bagels are supervised by R. Mehlman; toppings and spreads need their own hechsher on the package. It is not a certified kosher establishment, and R. Mehlman is not on the cRc list."],
+ ["2nd Ave Deli (UES) / 2nd Floor Bar & Essen","1442 1st Ave at E 75th St. Certified by the International Kosher Council, which is not on the cRc list, and open on Shabbat (Wikipedia); most Orthodox Jews do not eat there."],
+ ["2nd Ave Deli","162 E 33rd St. Certified by the International Kosher Council (Goldbelly, Wikipedia), which is not on the cRc list, and open on Shabbat (Wikipedia)."],
+ ["Kailash Parbat","Indian vegetarian restaurant (99 Lexington Ave) that went kosher in 2015 under Rabbi Yisrael Mayer Steinberg, who is not on the cRc list. OpenTable lists it as open every day 12:00–22:15, which includes Shabbat. No current certification source was found."],
+ ["DO, Cookie Dough Confections","DO (550 LaGuardia Pl) was certified by Rabbi Aaron Mehlman in 2017, with cones not covered. It is not on CKJ's 2026-10-13 list, which includes many Mehlman places, and the 16 Handles owner bought the brand in 2023. No current certification was found, and R. Mehlman is not on the cRc list."],
+ ["Babycakes NYC","Vegan bakery at 248 Broome St that guides describe as 'kosher', but no source names a certifying agency, and its operating status is inconsistent."],
+ ["Kossar's Bialys","Lost its kosher certification: Rabbi Shmuel Fishelis declined to restore it in Feb 2016, and it is not on CKJ's 2026 list."],
+ ["Katz's Delicatessen","Kosher-style, not kosher: Wikipedia's list of kosher restaurants describes it as kosher-style. It has no certification."],
+ ["JTS Kosher Cafe","JTS cafe (3080 Broadway, open to the public). The JTS page names no agency, and Kosher Near Me lists the supervision as 'Rabbi Joel Roth' (JTS faculty), who is not on the cRc list. The R. Mehlman / NKS claim could not be confirmed, and NKS is not on the cRc list either."],
+];
+
 const $=s=>document.querySelector(s);
+const K = {meat:"Meat",dairy:"Dairy",pareve:"Pareve"};
 
-// ---- state
+// ---- current city (?city=… in the URL wins, then the last one used, then Jerusalem)
+let CID, C, RU, H, R, UNCONF, EXCL, LAND;
+function pickCity(){
+  const u=new URLSearchParams(location.search).get("city");
+  if(u&&CITIES[u])return u;
+  try{const s=localStorage.getItem("kf_city");if(s&&CITIES[s])return s}catch(e){}
+  return "jerusalem";
+}
+const inBox=(c,lat,lng)=>lat>=c.bbox[0]&&lat<=c.bbox[2]&&lng>=c.bbox[1]&&lng<=c.bbox[3];
+const cityAt=(lat,lng)=>Object.keys(CITIES).find(id=>inBox(CITIES[id],lat,lng));
+$("#city").innerHTML=Object.entries(CITIES).map(([id,c])=>`<option value="${id}">${c.name}</option>`).join("");
+
+// ---- state (filters are remembered per city)
 let state = {q:"",h:new Set(),k:new Set(),tab:"verified"};
-try{const s=JSON.parse(localStorage.getItem("jkf")||"null");if(s){state.h=new Set(s.h||[]);state.k=new Set(s.k||[]);}}catch(e){}
-function save(){try{localStorage.setItem("jkf",JSON.stringify({h:[...state.h],k:[...state.k]}))}catch(e){}}
+function save(){try{localStorage.setItem(C.store,JSON.stringify({h:[...state.h],k:[...state.k]}))}catch(e){}}
+function loadState(){
+  state.h=new Set();state.k=new Set();
+  try{const s=JSON.parse(localStorage.getItem(C.store)||"null");if(s){state.h=new Set((s.h||[]).filter(x=>H[x]));state.k=new Set(s.k||[]);}}catch(e){}
+}
 
 
-// ---- Hebrew calendar (Dershowitz–Reingold), Israel observance
+// ---- Hebrew calendar (Dershowitz–Reingold); Israel or diaspora observance per the city's ruleset
 const HEB_EPOCH=-1373427;
 const hLeap=y=>((7*y+1)%19)<7;
 const hLastMonth=y=>hLeap(y)?13:12;
@@ -515,38 +883,48 @@ const dow=f=>((f%7)+7)%7; // 0=Sunday
 function purimMonth(y){return hLeap(y)?13:12}
 // returns {label, msg, level} for a fixed day
 function holidayInfo(f){
-  const h=hFromFixed(f),m=h.m,d=h.d,y=h.y,w=dow(f),L=hLeap(y);
+  const h=hFromFixed(f),m=h.m,d=h.d,y=h.y,w=dow(f),L=hLeap(y),D=RU.diaspora;
   const closed=t=>({label:t,msg:`${t} — restaurants are closed today. Some reopen late tonight after the chag; check Motzei Chag hours.`,level:"closed"});
   const fast=t=>({label:t,msg:`${t} (fast day) — most restaurants stay closed until after the fast ends this evening.`,level:"closed"});
+  const cm1=D?17:16; // first day of Chol Hamoed (one extra Yom Tov day outside Israel)
   if(m===7){
     if(d<=2)return closed(d===1?"Rosh Hashana (day 1)":"Rosh Hashana (day 2)");
     if((d===3&&w!==6)||(d===4&&w===0&&dow(f-1)===6))return fast("Tzom Gedaliah");
     if(d===9)return{label:"Erev Yom Kippur",msg:"Erev Yom Kippur — restaurants close early afternoon for the fast. Eat early.",level:"warn"};
     if(d===10)return closed("Yom Kippur");
     if(d===14)return{label:"Erev Sukkot",msg:"Erev Sukkot — most places close by early afternoon. Ask about sukkah seating for the week.",level:"warn"};
-    if(d===15)return closed("Sukkot (Yom Tov)");
-    if(d>=16&&d<=20)return{label:"Chol Hamoed Sukkot",msg:`Chol Hamoed Sukkot (day ${d-15}) — hours may differ from those listed; some places open late or close early. Call ahead and ask whether they have a sukkah.`,level:"warn"};
+    if(d===15)return closed(D?"Sukkot (Yom Tov, day 1)":"Sukkot (Yom Tov)");
+    if(D&&d===16)return closed("Sukkot (Yom Tov, day 2)");
+    if(d>=cm1&&d<=20)return{label:"Chol Hamoed Sukkot",msg:`Chol Hamoed Sukkot (day ${d-cm1+1}) — hours may differ from those listed; some places open late or close early. Call ahead and ask whether they have a sukkah.`,level:"warn"};
     if(d===21)return{label:"Hoshana Rabba",msg:"Hoshana Rabba (last day of Chol Hamoed) — restaurants close early afternoon for Shemini Atzeret. Ask about a sukkah.",level:"warn"};
-    if(d===22)return closed("Shemini Atzeret / Simchat Torah");
-    if(d===23)return{label:"Isru Chag",msg:"Isru Chag — some places open late today after the chag.",level:"info"};
+    if(d===22)return closed(D?"Shemini Atzeret":"Shemini Atzeret / Simchat Torah");
+    if(D&&d===23)return closed("Simchat Torah");
+    if(d===(D?24:23))return{label:"Isru Chag",msg:"Isru Chag — some places open late today after the chag.",level:"info"};
   }
   if((m===9&&d>=25)||(m===10&&(d<=2||(d===3&&hMonthDays(y,9)===29)))){const n=m===9?d-24:(hMonthDays(y,9)===30?d+6:d+5);return{label:"Chanukah",msg:`Chanukah (day ${n}) — normal hours. Bakeries and cafés push sufganiyot; the grill places are the higher-protein choice.`,level:"info"}}
   if(m===10&&d===10)return fast("Asara B'Tevet");
   if(m===11&&d===15)return{label:"Tu BiShvat",msg:"Tu BiShvat — normal hours.",level:"info"};
   if(m===purimMonth(y)){
     if((d===13&&w!==6)||(d===11&&w===4))return fast("Ta'anit Esther");
-    if(d===14)return{label:"Purim (outside Jerusalem)",msg:"Purim elsewhere in Israel — but Jerusalem keeps Shushan Purim tomorrow. Expect Purim hours and crowds tomorrow.",level:"info"};
-    if(d===15)return{label:"Shushan Purim (Jerusalem)",msg:"Shushan Purim in Jerusalem — many restaurants close for the seudah or run special hours; the city center is packed. Call first.",level:"warn"};
+    if(C.shushan){
+      if(d===14)return{label:"Purim (outside Jerusalem)",msg:"Purim elsewhere in Israel — but Jerusalem keeps Shushan Purim tomorrow. Expect Purim hours and crowds tomorrow.",level:"info"};
+      if(d===15)return{label:"Shushan Purim (Jerusalem)",msg:"Shushan Purim in Jerusalem — many restaurants close for the seudah or run special hours; the city center is packed. Call first.",level:"warn"};
+    }else{
+      if(d===14)return{label:"Purim",msg:"Purim — many restaurants close early for the seudah or run special hours. Call first.",level:"warn"};
+      if(d===15)return{label:"Shushan Purim",msg:"Shushan Purim — normal hours here.",level:"info"};
+    }
   }
   if(m===1){
     if(d===14)return{label:"Erev Pesach",msg:"Erev Pesach — chametz places are closed; only Pesach-certified kitchens serve, and they close early afternoon.",level:"closed"};
-    if(d===15)return closed("Pesach (Yom Tov)");
-    if(d>=16&&d<=20)return{label:"Chol Hamoed Pesach",msg:`Chol Hamoed Pesach (day ${d-15}) — many places on this list are closed; those open serve Pesach menus under a Pesach teudah. Check for kitniyot and gebrokts notes and call first.`,level:"warn"};
+    if(d===15)return closed(D?"Pesach (Yom Tov, day 1)":"Pesach (Yom Tov)");
+    if(D&&d===16)return closed("Pesach (Yom Tov, day 2)");
+    if(d>=cm1&&d<=20)return{label:"Chol Hamoed Pesach",msg:`Chol Hamoed Pesach (day ${d-cm1+1}) — many places on this list are closed; those open serve Pesach menus under a Pesach ${RU.cert}. Check for kitniyot and gebrokts notes and call first.`,level:"warn"};
     if(d===21)return closed("Shvi'i shel Pesach");
-    if(d===22)return{label:"Isru Chag",msg:"Isru Chag Pesach — most restaurants reopen only after kashering, often a day or two late. Call first.",level:"warn"};
+    if(D&&d===22)return closed("Acharon shel Pesach");
+    if(d===(D?23:22))return{label:"Isru Chag",msg:"Isru Chag Pesach — most restaurants reopen only after kashering, often a day or two late. Call first.",level:"warn"};
   }
   if(m===2&&d===18)return{label:"Lag BaOmer",msg:"Lag BaOmer — normal hours; grill places are busy.",level:"info"};
-  if(m===3){if(d===5)return{label:"Erev Shavuot",msg:"Erev Shavuot — restaurants close early afternoon.",level:"warn"};if(d===6)return closed("Shavuot");}
+  if(m===3){if(d===5)return{label:"Erev Shavuot",msg:"Erev Shavuot — restaurants close early afternoon.",level:"warn"};if(d===6)return closed(D?"Shavuot (day 1)":"Shavuot");if(D&&d===7)return closed("Shavuot (day 2)");}
   if(m===4&&((d===17&&w!==6)||(d===18&&w===0)))return fast("Shiva Asar B'Tammuz");
   if(m===5){
     if((d===9&&w!==6)||(d===10&&w===0))return fast("Tisha B'Av");
@@ -567,9 +945,9 @@ function todayBanner(now){
   if(tm&&(tm.level==="closed"||tm.label.startsWith("Erev")===false&&tm.level==="warn")&&(!t||tm.label!==t.label)&&now.getHours()>=12)parts.push(`Tonight begins ${tm.label.replace(/ \(.*\)/,"")}${tm.level==="closed"?" — places close this afternoon":""}.`);
   return{hebrew:hd,label:t?t.label:"",text:parts.join(" "),level:t?t.level:"info"};
 }
-// ---- Pesach view (driven by the calendar above)
+// ---- Pesach view (driven by the calendar above): 8 Nisan through Isru Chag
 const HTODAY=hFromFixed(gFixed(new Date().getFullYear(),new Date().getMonth()+1,new Date().getDate()));
-const pesachView = HTODAY.m===1 && HTODAY.d>=8 && HTODAY.d<=22;
+let pesachView=false;
 let pf={open:false,kit:false,geb:false};
 function renderPesachChips(){
   const c=$("#pesachChips"); c.hidden=!pesachView;
@@ -580,7 +958,7 @@ function renderPesachChips(){
 $("#pesachChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const k=b.dataset.p;
   pf[k]=!pf[k];renderPesachChips();render();});
 
-// ---- Plus code (Open Location Code) decoder, short codes recovered near Jerusalem
+// ---- Plus code (Open Location Code) decoder, short codes recovered near the current city
 const OLC_AB="23456789CFGHJMPQRVWX",OLC_RES=[20,1,.05,.0025,.000125];
 function olcEncode(lat,lng){let a=lat+90,b=lng+180,c="";for(let i=0;i<5;i++){const r=OLC_RES[i];let d=Math.floor(a/r);a-=d*r;c+=OLC_AB[d];d=Math.floor(b/r);b-=d*r;c+=OLC_AB[d];if(i===3)c+="+"}return c}
 function olcDecode(code){const s=code.replace("+","").toUpperCase();let lat=-90,lng=-180,res=20;for(let i=0;i+1<Math.min(s.length,10);i+=2){res=OLC_RES[i/2];lat+=OLC_AB.indexOf(s[i])*res;lng+=OLC_AB.indexOf(s[i+1])*res}return{lat:lat+res/2,lng:lng+res/2}}
@@ -599,39 +977,42 @@ function parseLocation(t){
   let m=t.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||t.match(/[?&](?:q|ll|query|destination)=(-?\d+\.\d+),(-?\d+\.\d+)/)||t.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)||t.match(/geo:(-?\d+\.\d+),(-?\d+\.\d+)/)||t.match(/^\s*(-?\d+\.\d+)[,\s]+(-?\d+\.\d+)/);
   if(m)return{lat:+m[1],lng:+m[2],how:"coordinates"};
   const pc=t.match(/([23456789CFGHJMPQRVWX]{2,8}\+[23456789CFGHJMPQRVWX]{2,3})/i);
-  if(pc){const c=olcRecover(pc[1],31.78,35.22);if(c)return{lat:c.lat,lng:c.lng,how:"plus code "+pc[1].toUpperCase()}}
+  if(pc){const c=olcRecover(pc[1],C.center[0],C.center[1]);if(c)return{lat:c.lat,lng:c.lng,how:"plus code "+pc[1].toUpperCase()}}
   return null;
 }
 
 // ---- location & walking time
 let me=null, sortNear=false, maxWalk=0;
-const LAND=[["Kotel / Old City",31.7767,35.2345],["Central Bus Station",31.7891,35.2030],["Mir Yeshiva / Beit Yisrael",31.7885,35.2244],["Geula (Malchei Yisrael)",31.7895,35.2150],["Machane Yehuda",31.7850,35.2120],["Ben Yehuda / Zion Square",31.7813,35.2192],["Mamilla",31.7776,35.2255],["Rav Shefa mall / Romema",31.7947,35.2084],["Sanhedria",31.7995,35.2185],["Ramat Eshkol (Paran)",31.8008,35.2277],["Har Hotzvim",31.8007,35.2102],["French Hill",31.8024,35.2385],["Pisgat Ze'ev",31.8207,35.2399],["Ramot Mall",31.8175,35.1944],["Givat Shaul / Kiryat Moshe",31.7879,35.1874],["Har Nof",31.7860,35.1738],["Bayit Vegan",31.7662,35.1842],["Rehavia",31.7750,35.2167],["Emek Refaim / German Colony",31.7648,35.2192],["Talpiot",31.7541,35.2174]];
-$("#landmark").innerHTML+=LAND.map((l,i)=>`<option value="${i}">${l[0]}</option>`).join("");
 const km=(a,b,c,d)=>{const R=6371,toR=x=>x*Math.PI/180,dl=toR(c-a),dg=toR(d-b);const h=Math.sin(dl/2)**2+Math.cos(toR(a))*Math.cos(toR(c))*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
 function walkMin(r){if(!me||r.lat==null)return null;const d=km(me.lat,me.lng,r.lat,r.lng)*1.3;return Math.max(1,Math.round(d/4.3*60))}
 function fmtWalk(m){return m==null?"":(m>=60?`~${Math.floor(m/60)} h ${m%60} min walk`:`~${m} min walk`)}
 function setMe(lat,lng,label){
   me={lat,lng};sortNear=true;
-  $("#locMsg").textContent=`From ${label}. Estimates use straight-line ×1.3 at 4.3 km/h; tap Walking directions for real routing.`;
+  $("#locMsg").textContent=`From ${label}. Estimates use straight-line ×1.3 at 4.3 km/h; tap Walking directions for real routing.`+(inBox(C,lat,lng)?"":` (That is outside ${C.name}.)`);
   $("#clearLoc").hidden=false;$("#walkChips").hidden=false;
-  try{localStorage.setItem("jkf_loc",JSON.stringify({lat,lng,label}))}catch(e){}
+  try{localStorage.setItem(C.store+"_loc",JSON.stringify({lat,lng,label}))}catch(e){}
   renderWalkChips();render();
 }
+function clearMe(){me=null;sortNear=false;maxWalk=0;$("#landmark").value="";$("#locMsg").textContent="";$("#clearLoc").hidden=true;$("#walkChips").hidden=true}
 $("#locBtn").addEventListener("click",()=>{
   if(!navigator.geolocation||window.self!==window.top){$("#locMsg").textContent="Inside this viewer the browser is not allowed to ask for location. Pick a landmark, or paste a Plus Code / Maps link (tap the button for how).";return}
   $("#locMsg").textContent="Locating…";
-  navigator.geolocation.getCurrentPosition(p=>setMe(p.coords.latitude,p.coords.longitude,"your location"),
+  navigator.geolocation.getCurrentPosition(p=>{
+     const lat=p.coords.latitude,lng=p.coords.longitude,id=cityAt(lat,lng);
+     if(id&&id!==CID)setCity(id,true);   // you are in another supported city: switch to it
+     setMe(lat,lng,"your location");},
    e=>{$("#locMsg").textContent=(e.code===1?"Location is blocked inside this viewer (no prompt is shown). ":"Couldn't get location. ")+"Pick a landmark, paste coordinates, or open this page in your phone's browser."},
    {enableHighAccuracy:true,timeout:12000,maximumAge:60000});
 });
 $("#landmark").addEventListener("change",e=>{const l=LAND[+e.target.value];if(l)setMe(l[1],l[2],l[0]);});
 $("#coordBtn").addEventListener("click",()=>{
-  const t=prompt("In Google Maps: tap the blue dot (or long-press a spot) → you'll see a Plus Code like QC7Q+X8 Jerusalem, or coordinates like 31.7895, 35.2150. Copy and paste it here. (Short maps.app.goo.gl links don't contain the location.)");
+  const t=prompt(`In Google Maps: tap the blue dot (or long-press a spot) → you'll see a Plus Code like ${C.plusEx}, or coordinates like ${C.coordEx}. Copy and paste it here. (Short maps.app.goo.gl links don't contain the location.)`);
   if(!t)return;const r=parseLocation(t);
-  if(!r){$("#locMsg").textContent="Couldn't read that. Paste a Plus Code (e.g. QC7Q+X8), coordinates (31.7895, 35.2150) or a full google.com/maps link with @lat,lng.";return}
+  if(!r){$("#locMsg").textContent=`Couldn't read that. Paste a Plus Code (e.g. ${C.plusEx.split(" ")[0]}), coordinates (${C.coordEx}) or a full google.com/maps link with @lat,lng.`;return}
+  const id=cityAt(r.lat,r.lng);if(id&&id!==CID)setCity(id,true);
   setMe(r.lat,r.lng,r.how);
 });
-$("#clearLoc").addEventListener("click",()=>{me=null;sortNear=false;maxWalk=0;$("#landmark").value="";$("#locMsg").textContent="";$("#clearLoc").hidden=true;$("#walkChips").hidden=true;try{localStorage.removeItem("jkf_loc")}catch(e){}render()});
+$("#clearLoc").addEventListener("click",()=>{clearMe();try{localStorage.removeItem(C.store+"_loc")}catch(e){}render()});
 function renderWalkChips(){
   const opts=[[0,"Any distance"],[10,"≤10 min"],[20,"≤20 min"],[30,"≤30 min"],[45,"≤45 min"]];
   $("#walkChips").innerHTML=opts.map(([v,l])=>`<button class="chip" data-w="${v}" aria-pressed="${maxWalk===v}">${l}</button>`).join("")+`<button class="chip" id="sortBtn" aria-pressed="${sortNear}">Nearest first</button>`;
@@ -641,9 +1022,11 @@ $("#walkChips").addEventListener("click",e=>{
   if(b.id==="sortBtn"){sortNear=!sortNear}else{maxWalk=+b.dataset.w}
   renderWalkChips();render();
 });
-const walkURL=r=>`https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${encodeURIComponent(r.addr+", Jerusalem")}`;
+const M = q => "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q+", "+C.maps);
+const walkURL=r=>`https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${encodeURIComponent(r.addr+", "+C.maps)}`;
 
 const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hLabel=r=>r.hl||H[r.h].label;
 
 function chip(id,label,color,on){return `<button class="chip" data-id="${id}" aria-pressed="${on}">${color?`<span class="dot" style="--c:${color}"></span>`:""}${label}</button>`}
 function renderChips(){
@@ -671,7 +1054,7 @@ function matches(r){
   if(state.h.size&&!state.h.has(r.h))return false;
   if(state.k.size&&!state.k.has(r.k))return false;
   if(!state.q)return true;
-  const hay=[r.n,r.heb,r.t,r.area,r.addr,r.nut,r.order,H[r.h].label,K[r.k]].join(" ").toLowerCase();
+  const hay=[r.n,r.heb,r.t,r.area,r.addr,r.nut,r.order,H[r.h].label,r.hl,K[r.k]].join(" ").toLowerCase();
   return state.q.split(/\s+/).every(w=>hay.includes(w));
 }
 function pesachLine(r){const p=P(r);const y=v=>v===true?"yes":v===false?"no":"not verified";
@@ -683,12 +1066,12 @@ function rowHTML(r,i){
     <button class="head" aria-expanded="false" data-i="${i}">
       <span class="kind" style="--k:var(--${r.k})" title="${K[r.k]}"></span>
       <span class="name">${esc(r.n)}${r.heb?`<span class="heb">${esc(r.heb)}</span>`:""}${r.warn?`<span class="warnmark" title="Conflicting reports">⚠</span>`:""}</span>
-      <span class="price">${"₪".repeat(r.price)}</span>
+      <span class="price">${RU.cur.repeat(r.price||0)}</span>
       <span class="sub">${esc(r.t)} · ${esc(r.area)}${walkMin(r)!=null?` · <span class="walk">${fmtWalk(walkMin(r))}</span>`:(me&&r.lat==null?" · location unknown":"")}</span>
     </button>
     <div class="detail">
       <dl>
-        <dt>Hechsher</dt><dd><span class="stamp" style="--hc:${hc}">${H[r.h].label}</span> <a href="${r.proof}" target="_blank" rel="noopener">${esc(r.plabel)}</a></dd>
+        <dt>Hechsher</dt><dd><span class="stamp" style="--hc:${hc}">${esc(hLabel(r))}</span> <a href="${r.proof}" target="_blank" rel="noopener">${esc(r.plabel)}</a></dd>
         <dt>Kashrus type</dt><dd>${K[r.k]}</dd>
         <dt>Nutrition</dt><dd>${esc(r.nut)}${r.order?` — <em>${esc(r.order)}</em>`:""}</dd>
         <dt>Reviews</dt><dd>${esc(r.rev)}</dd>
@@ -711,6 +1094,7 @@ function render(){
   if(me&&maxWalk){list=list.filter(x=>{const w=walkMin(x.r);return w!=null&&w<=maxWalk});}
   if(me&&sortNear){list.sort((a,b)=>(walkMin(a.r)??9e9)-(walkMin(b.r)??9e9));}
   $("#status").textContent = (list.length===R.length ? `${R.length} verified places` : `${list.length} of ${R.length} places`)+(me&&maxWalk?` within ~${maxWalk} min walk`:"");
+  if(!R.length){$("#results").innerHTML=`<div class="empty">No verified places for ${esc(C.name)} yet.</div>`;return}
   if(!list.length){$("#results").innerHTML=`<div class="empty">Nothing matches. ${pesachView&&(pf.open||pf.kit||pf.geb)?"Pesach status hasn't been verified for these places yet — the chips only show confirmed ones. ":""}${me&&maxWalk?"Try a longer walk time or ":"Try "}fewer filters or a different word — search covers name, food type, street and neighborhood.</div>`;return}
   let html="";
   if(me&&sortNear){$("#results").innerHTML=`<div class="group" style="--gc:var(--green)"><h2>Nearest first<span>${list.length}</span></h2>${list.map(x=>rowHTML(x.r,x.i)).join("")}</div>`;return}
@@ -726,11 +1110,33 @@ $("#results").addEventListener("click",e=>{
   const row=b.parentElement;const open=!row.classList.contains("open");
   row.classList.toggle("open",open);b.setAttribute("aria-expanded",open);
 });
-$("#unconfList").innerHTML=UNCONF.map(([n,r])=>`<div class="row"><span class="n">${esc(n)}</span><span class="r">${esc(r)}</span></div>`).join("");
-$("#exclList").innerHTML=EXCL.map(([n,r])=>`<div class="row"><span class="n">${esc(n)}</span><span class="r">${esc(r)}</span></div>`).join("");
-renderPesachChips();renderChips();render();
-(function(){const b=todayBanner(new Date());const el=$("#banner");el.className="notice "+b.level;el.innerHTML=`<b>${esc(b.hebrew)}${b.label?" · "+esc(b.label):""}</b>${esc(b.text||"Normal hours today.")} Always check the teudah and its expiry date on the wall.`;})();
-try{const l=JSON.parse(localStorage.getItem("jkf_loc")||"null");if(l&&l.lat){const idx=LAND.findIndex(x=>x[0]===l.label);setMe(l.lat,l.lng,l.label);if(idx>=0)$("#landmark").value=idx;}}catch(e){}
+
+// ---- switch city: everything city-specific is (re)drawn here
+function setCity(id,keepLoc){
+  CID=id;C=CITIES[id];RU=RULES[C.rules];H=RU.H;
+  ({R,UNCONF,EXCL}=DATA[id]);LAND=C.LAND;
+  try{localStorage.setItem("kf_city",id)}catch(e){}
+  if(new URLSearchParams(location.search).get("city")!==id)try{history.replaceState(null,"","?city="+id)}catch(e){}
+  $("#city").value=id;
+  document.title=`${C.title} – kosher restaurants by hechsher`;
+  $("#citySub").textContent=C.sub;
+  $("#q").placeholder="Search name, food, street, neighborhood…";
+  $("#landmark").innerHTML=`<option value="">…or I'm near</option>`+LAND.map((l,i)=>`<option value="${i}">${l[0]}</option>`).join("");
+  document.querySelector('.tab[data-tab="unconfirmed"]').textContent=RU.unconfTab;
+  $("#unconfNote").textContent=C.unconfNote;$("#exclNote").textContent=C.exclNote;$("#legendCert").textContent=RU.cert;
+  $("#unconfList").innerHTML=UNCONF.map(([n,r])=>`<div class="row"><span class="n">${esc(n)}</span><span class="r">${esc(r)}</span></div>`).join("")||`<div class="empty">None.</div>`;
+  $("#exclList").innerHTML=EXCL.map(([n,r])=>`<div class="row"><span class="n">${esc(n)}</span><span class="r">${esc(r)}</span></div>`).join("")||`<div class="empty">None.</div>`;
+  pesachView = HTODAY.m===1 && HTODAY.d>=8 && HTODAY.d<=(RU.diaspora?23:22);
+  loadState();
+  const b=todayBanner(new Date());const el=$("#banner");el.className="notice "+b.level;el.innerHTML=`<b>${esc(b.hebrew)}${b.label?" · "+esc(b.label):""}</b>${esc(b.text||"Normal hours today.")} Always check the ${RU.cert} and its expiry date on the wall.`;
+  if(!keepLoc){
+    clearMe();
+    try{const l=JSON.parse(localStorage.getItem(C.store+"_loc")||"null");if(l&&l.lat){const idx=LAND.findIndex(x=>x[0]===l.label);setMe(l.lat,l.lng,l.label);if(idx>=0)$("#landmark").value=idx;}}catch(e){}
+  }
+  renderPesachChips();renderChips();render();
+}
+$("#city").addEventListener("change",e=>setCity(e.target.value));
+setCity(pickCity());
 </script>
 </body>
 </html>
